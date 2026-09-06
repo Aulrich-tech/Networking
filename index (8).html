@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Network Models — Networking Reviewer</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <span class="dot"></span><strong>NET::REVIEWER</strong>
+  <select onchange="if(this.value) location.href=this.value;">
+    <option value="">Jump to page…</option>
+    <option value="index.html">01 · Network Models</option>
+    <option value="subnetting.html">02 · Subnetting</option>
+    <option value="vlsm.html">03 · VLSM</option>
+  </select>
+</div>
+
+<div class="shell">
+  <aside class="sidenav">
+    <div class="brand">
+      <span class="dot"></span>
+      <div><span>NET::REVIEWER</span><small>IP networking study set</small></div>
+    </div>
+    <div class="navgroup-label">TOPICS</div>
+    <nav>
+      <a href="index.html" class="active"><span class="idx">01</span> Network Models</a>
+      <a href="subnetting.html"><span class="idx">02</span> Subnetting</a>
+      <a href="vlsm.html"><span class="idx">03</span> VLSM</a>
+    </nav>
+    <div class="toc">
+      <div class="navgroup-label">ON THIS PAGE</div>
+      <nav>
+        <a href="#basics">Networks &amp; protocols</a>
+        <a href="#osi">The OSI model</a>
+        <a href="#layers">Layer-by-layer</a>
+        <a href="#roles">Who owns which layer</a>
+        <a href="#lanwan">LAN, WAN &amp; devices</a>
+        <a href="#tcpip">TCP/IP model</a>
+        <a href="#encap">Encapsulation</a>
+        <a href="#check">Self-check</a>
+      </nav>
+    </div>
+  </aside>
+
+  <main>
+    <div class="pagewrap">
+
+      <div class="hero">
+        <div class="kicker">// 01 — FOUNDATIONS</div>
+        <h1>Network Models</h1>
+        <p class="lead">How the OSI and TCP/IP models break communication into layers, what each layer is
+          responsible for, which devices live there, and how data is wrapped and unwrapped as it
+          travels from an application to the wire.</p>
+        <div class="badges">
+          <span class="badge">OSI · 7 layers</span>
+          <span class="badge">TCP/IP · 4–5 layers</span>
+          <span class="badge">Encapsulation</span>
+          <span class="badge">Demarcation point</span>
+        </div>
+      </div>
+
+      <section class="block" id="basics">
+        <div class="section-head"><span class="num">§1</span><h2>Networks &amp; protocols</h2></div>
+        <div class="grid2">
+          <div class="card">
+            <h3>Network / networking</h3>
+            <p>A data or information network is capable of carrying many different types of
+              communications. Networking is the interconnection of devices to enable
+              <strong>resource sharing</strong>.</p>
+          </div>
+          <div class="card">
+            <h3>Protocols</h3>
+            <p>A protocol is a set of rules or instructions used to let devices communicate
+              successfully — think of it as the shared language both ends agree to speak.</p>
+          </div>
+        </div>
+        <div class="callout warn">
+          <span class="label">WATCH FOR</span>
+          <strong>Proprietary protocols</strong> can only be run by the vendor that developed
+          them — they don't guarantee interoperability across brands the way open, standard
+          protocols do.
+        </div>
+      </section>
+
+      <section class="block" id="osi">
+        <div class="section-head"><span class="num">§2</span><h2>The OSI model</h2></div>
+        <p>The <strong>Open Systems Interconnection (OSI)</strong> model splits network
+          communication into 7 conceptual layers. Every layer only talks to the layers directly
+          above and below it.</p>
+        <div class="stack">
+          <div class="layer upper"><div class="lnum">7</div><div><div class="lname">Application</div></div><div class="lchip">closest to the user</div></div>
+          <div class="layer upper"><div class="lnum">6</div><div><div class="lname">Presentation</div></div><div class="lchip">data format</div></div>
+          <div class="layer upper"><div class="lnum">5</div><div><div class="lname">Session</div></div><div class="lchip">dialog control</div></div>
+          <div class="layer lower"><div class="lnum">4</div><div><div class="lname">Transport</div></div><div class="lchip">TCP / UDP</div></div>
+          <div class="layer lower"><div class="lnum">3</div><div><div class="lname">Network</div></div><div class="lchip">IP addressing</div></div>
+          <div class="layer lower"><div class="lnum">2</div><div><div class="lname">Data Link</div></div><div class="lchip">MAC addressing</div></div>
+          <div class="layer lower"><div class="lnum">1</div><div><div class="lname">Physical</div></div><div class="lchip">bits on the wire</div></div>
+        </div>
+        <div class="callout tip">
+          <span class="label">WHY LAYERS AT ALL — OSI ADVANTAGES</span>
+          Intervendor operability &nbsp;·&nbsp; Ease of troubleshooting &nbsp;·&nbsp; Ease of understanding
+        </div>
+        <div class="callout rule">
+          <span class="label">MEMORY AID</span>
+          Top‑down (7→1): <em>All People Seem To Need Data Processing.</em>
+          Bottom‑up (1→7): <em>Please Do Not Throw Sausage Pizza Away.</em>
+        </div>
+      </section>
+
+      <section class="block" id="layers">
+        <div class="section-head"><span class="num">§3</span><h2>Layer-by-layer breakdown</h2></div>
+
+        <details class="qa" open>
+          <summary>7 · Application — network processes to applications</summary>
+          <div class="a">Provides network services directly to application processes such as
+            email, file transfer, and terminal emulation. <br><strong>Examples:</strong> web
+            browsers (Chrome, Firefox, Edge, Safari), email clients. <br><strong>End devices:</strong>
+            PCs, servers, network printers.</div>
+        </details>
+
+        <details class="qa">
+          <summary>6 · Presentation — data representation</summary>
+          <div class="a">Ensures data is readable by the receiving system: formats and structures
+            data, and negotiates the data-transfer syntax for the application layer.
+            <br><strong>Common formats:</strong> JPG, PNG, GIF, MP3, MP4, DOC, PDF.</div>
+        </details>
+
+        <details class="qa">
+          <summary>5 · Session — interhost communication</summary>
+          <div class="a">Establishes, manages, and terminates sessions between applications.
+            <br><strong>Rule of thumb:</strong> a remote connection = a session.</div>
+        </details>
+
+        <details class="qa">
+          <summary>4 · Transport — end-to-end connections</summary>
+          <div class="a">In charge of the reliable transport of data (TCP and UDP). Concerned
+            with transportation issues between hosts: data-transport reliability, establishing /
+            maintaining / terminating virtual circuits, fault detection and recovery, and flow
+            control.</div>
+        </details>
+
+        <details class="qa">
+          <summary>3 · Network — logical addressing &amp; best-path determination</summary>
+          <div class="a">Provides connectivity and path selection between two hosts, assigns the
+            logical (IP) address, and offers best-effort delivery with no error correction of its
+            own. <br><strong>Routing protocols:</strong> RIP, EIGRP, OSPF, BGP. <br><strong>Device:</strong> routers.</div>
+        </details>
+
+        <details class="qa">
+          <summary>2 · Data Link — direct link control, access to media</summary>
+          <div class="a">Provides reliable transfer of data across the local media: physical
+            (MAC) addressing, network topology, error notification, and flow control.
+            <br><strong>WAN encapsulation types:</strong> HDLC, PPP, Frame Relay. <br><strong>Device:</strong> switches.</div>
+        </details>
+
+        <details class="qa">
+          <summary>1 · Physical — binary transmission</summary>
+          <div class="a">Wires, connectors, voltages, and data rates — the raw transmission
+            medium. <br><strong>Media:</strong> copper, fiber, air. <br><strong>Standards:</strong>
+            Ethernet, EIA/TIA, and the many physical connector types.</div>
+        </details>
+      </section>
+
+      <section class="block" id="roles">
+        <div class="section-head"><span class="num">§4</span><h2>Who owns which layer</h2></div>
+        <div class="grid2">
+          <div class="card">
+            <h3>Layers 5–7</h3>
+            <p><strong>System administrators / system engineers</strong> typically own the
+              Session, Presentation, and Application layers — the software and services side.</p>
+          </div>
+          <div class="card">
+            <h3>Layers 1–4</h3>
+            <p><strong>Network administrators / network engineers</strong> typically own the
+              Transport, Network, Data Link, and Physical layers — getting bits reliably from
+              host to host.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="block" id="lanwan">
+        <div class="section-head"><span class="num">§5</span><h2>LAN, WAN &amp; the demarcation point</h2></div>
+        <p>In a typical path — PC → switch → router → CSU/DSU → internet — everything from the
+          PC through the router sits on the <strong>LAN</strong> side; everything from the
+          <strong>demarcation point</strong> outward (through the CSU/DSU and into the ISP cloud)
+          is the <strong>WAN</strong> side. The demarcation point is where the provider's
+          responsibility ends and yours begins.</p>
+        <div class="grid3">
+          <div class="card">
+            <h3>Modem / DSL bridge</h3>
+            <p>Converts the ISP's line signal (e.g. DSL) into an Ethernet connection the router
+              can use.</p>
+          </div>
+          <div class="card">
+            <h3>Router / switch / DHCP server</h3>
+            <p>Provides connectivity and best-path selection between hosts, assigns logical
+              (IP) addresses, and offers best-effort delivery — no built-in error correction.</p>
+          </div>
+          <div class="card">
+            <h3>CSU/DSU</h3>
+            <p><strong>Channel Service Unit / Data Service Unit</strong> — terminates a
+              digital WAN circuit at the customer's demarcation point.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="block" id="tcpip">
+        <div class="section-head"><span class="num">§6</span><h2>TCP/IP model</h2></div>
+        <p>TCP/IP collapses the top three OSI layers into one Application layer, and the bottom
+          two into one Network Access layer. A commonly-taught "updated" TCP/IP model instead
+          keeps Data Link and Physical separate — closer to how real troubleshooting is done.</p>
+        <div class="grid3">
+          <div class="card"><h3>OSI</h3>
+            <ol class="tight"><li>Application</li><li>Presentation</li><li>Session</li><li>Transport</li><li>Network</li><li>Data Link</li><li>Physical</li></ol>
+          </div>
+          <div class="card"><h3>TCP/IP (classic)</h3>
+            <ol class="tight"><li>Application</li><li>Transport</li><li>Internet</li><li>Network Access</li></ol>
+          </div>
+          <div class="card"><h3>TCP/IP (updated)</h3>
+            <ol class="tight"><li>Application</li><li>Transport</li><li>Network</li><li>Data Link</li><li>Physical</li></ol>
+          </div>
+        </div>
+
+        <div class="tblwrap">
+          <table>
+            <thead><tr><th>Layer</th><th>Description / protocols</th><th>Devices</th></tr></thead>
+            <tbody>
+              <tr><td>7 · Application</td><td>Any software/application that lets you connect to the network</td><td rowspan="6" style="vertical-align:top">End devices — PCs, servers, network printers, etc. · Routers (L3) · Switches (L2)</td></tr>
+              <tr><td>6 · Presentation</td><td>Any file type that converts binary data into human-readable form</td></tr>
+              <tr><td>5 · Session</td><td>Controls the start and end of a network connection</td></tr>
+              <tr><td>4 · Transport</td><td>In charge of the reliable transport of data (TCP and UDP)</td></tr>
+              <tr><td>3 · Network</td><td>Logical / IP addressing and path determination (RIP, EIGRP, OSPF, BGP)</td></tr>
+              <tr><td>2 · Data Link</td><td>Physical / MAC addressing and error detection (HDLC, PPP, Frame Relay)</td></tr>
+              <tr><td>1 · Physical</td><td>Copper, fiber, air; Ethernet &amp; EIA/TIA standards; connector types</td><td>Cabling &amp; transceivers</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="block" id="encap">
+        <div class="section-head"><span class="num">§7</span><h2>Encapsulation &amp; de-encapsulation</h2></div>
+        <p>As data moves <strong>down</strong> the stack for transmission, each layer wraps the
+          previous layer's output in its own header (encapsulation). The receiving host reverses
+          the process, stripping headers as data moves <strong>up</strong> the stack
+          (de-encapsulation) — like a package getting wrapped for shipping and unwrapped on
+          arrival.</p>
+        <div class="flow">
+          <div class="step"><span class="n">L7‑5</span><h4>Data</h4><p>Email / application payload</p></div>
+          <div class="arrow">→</div>
+          <div class="step"><span class="n">L4</span><h4>Segment</h4><p>+ Transport header</p></div>
+          <div class="arrow">→</div>
+          <div class="step"><span class="n">L3</span><h4>Packet</h4><p>+ Network header</p></div>
+          <div class="arrow">→</div>
+          <div class="step"><span class="n">L2</span><h4>Frame</h4><p>+ Frame header (medium dependent)</p></div>
+          <div class="arrow">→</div>
+          <div class="step"><span class="n">L1</span><h4>Bits</h4><p>1100010101000101…</p></div>
+        </div>
+        <div class="callout tip">
+          <span class="label">TERM CHECK</span>
+          Data → <strong>Segment</strong> (Transport) → <strong>Packet</strong> (Network) →
+          <strong>Frame</strong> (Data Link) → <strong>Bits</strong> (Physical). Getting this
+          vocabulary exact is what most quizzes test.
+        </div>
+      </section>
+
+      <section class="block" id="check">
+        <div class="section-head"><span class="num">§8</span><h2>Self-check</h2></div>
+        <details class="qa">
+          <summary>Which layer establishes, manages, and terminates a session?</summary>
+          <div class="a">Layer 5 — Session. Remember: a remote connection = a session.</div>
+        </details>
+        <details class="qa">
+          <summary>A packet becomes a frame at which layer, and what gets added?</summary>
+          <div class="a">Layer 2, Data Link — a frame header (and trailer, medium dependent) is
+            added around the Layer‑3 packet.</div>
+        </details>
+        <details class="qa">
+          <summary>Who typically manages Layers 1–4 vs. Layers 5–7 in an organization?</summary>
+          <div class="a">Layers 1–4: network administrators / network engineers. Layers 5–7:
+            system administrators / system engineers.</div>
+        </details>
+        <details class="qa">
+          <summary>What are the three stated advantages of the OSI layered model?</summary>
+          <div class="a">Intervendor operability, ease of troubleshooting, and ease of
+            understanding.</div>
+        </details>
+      </section>
+
+      <div class="pagejump">
+        <a class="next" href="subnetting.html" style="margin-left:auto">
+          <span class="dir">NEXT →</span>02 · Subnetting
+        </a>
+      </div>
+      <footer class="site">Networking Reviewer · Network Models · Subnetting · VLSM</footer>
+    </div>
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VLSM — Networking Reviewer</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <span class="dot"></span><strong>NET::REVIEWER</strong>
+  <select onchange="if(this.value) location.href=this.value;">
+    <option value="">Jump to page…</option>
+    <option value="index.html">01 · Network Models</option>
+    <option value="subnetting.html">02 · Subnetting</option>
+    <option value="vlsm.html">03 · VLSM</option>
+  </select>
+</div>
+
+<div class="shell">
+  <aside class="sidenav">
+    <div class="brand">
+      <span class="dot"></span>
+      <div><span>NET::REVIEWER</span><small>IP networking study set</small></div>
+    </div>
+    <div class="navgroup-label">TOPICS</div>
+    <nav>
+      <a href="index.html"><span class="idx">01</span> Network Models</a>
+      <a href="subnetting.html"><span class="idx">02</span> Subnetting</a>
+      <a href="vlsm.html" class="active"><span class="idx">03</span> VLSM</a>
+    </nav>
+    <div class="toc">
+      <div class="navgroup-label">ON THIS PAGE</div>
+      <nav>
+        <a href="#what">Classful vs. classless</a>
+        <a href="#process">The VLSM process</a>
+        <a href="#steps">3-step method</a>
+        <a href="#ex1">Worked example</a>
+        <a href="#why">"Why???" — the gotcha</a>
+        <a href="#summary">Summary</a>
+        <a href="#check">Self-check</a>
+      </nav>
+    </div>
+  </aside>
+
+  <main>
+    <div class="pagewrap">
+
+      <div class="hero">
+        <div class="kicker">// 03 — SUBNETTING A SUBNET</div>
+        <h1>VLSM — Variable Length Subnet Mask</h1>
+        <p class="lead">Instead of one mask for the whole network, VLSM lets you apply a
+          <em>different</em> mask to each segment — sized to how many hosts that segment
+          actually needs, so no address space is wasted on point-to-point links that only
+          ever need 2 hosts.</p>
+        <div class="badges">
+          <span class="badge">Largest segment first</span>
+          <span class="badge">2ʸ − 2 = hosts</span>
+          <span class="badge">Classless routing required</span>
+          <span class="badge">No overlapping blocks</span>
+        </div>
+      </div>
+
+      <section class="block" id="what">
+        <div class="section-head"><span class="num">§1</span><h2>Classful routing vs. VLSM / classless routing</h2></div>
+        <div class="grid2">
+          <div class="card">
+            <h3>Classful routing</h3>
+            <p>Only allows <strong>one subnet mask for all networks</strong> in the design —
+              simple, but wasteful when segments have very different host counts.</p>
+          </div>
+          <div class="card">
+            <h3>VLSM &amp; classless routing</h3>
+            <p>The process of <strong>subnetting a subnet</strong>. More than one subnet mask
+              can be used across the same major network, giving far more efficient use of IP
+              addresses than classful addressing.</p>
+          </div>
+        </div>
+        <div class="callout rule">
+          <span class="label">CLASSLESS ROUTING PROTOCOL CHARACTERISTICS</span>
+          Routing updates include the subnet mask &nbsp;·&nbsp; Supports VLSM &nbsp;·&nbsp;
+          Supports route summarization
+        </div>
+      </section>
+
+      <section class="block" id="process">
+        <div class="section-head"><span class="num">§2</span><h2>The VLSM process, end to end</h2></div>
+        <div class="flow">
+          <div class="step"><span class="n">1</span><h4>Sort segments</h4><p>Find the segment with the largest number of connected hosts — sort every segment from highest to lowest.</p></div>
+          <div class="arrow">→</div>
+          <div class="step"><span class="n">2</span><h4>Mask the largest</h4><p>Find an appropriate subnet mask for the largest segment.</p></div>
+          <div class="arrow">→</div>
+          <div class="step"><span class="n">3</span><h4>Write it down</h4><p>Write the subnet addresses that fit that mask, and claim one for the segment.</p></div>
+        </div>
+        <div class="flow">
+          <div class="step"><span class="n">4</span><h4>Re-subnet leftovers</h4><p>Take one of the newly created (still-unused) subnet addresses and apply a new, more appropriate mask to it.</p></div>
+          <div class="arrow">→</div>
+          <div class="step"><span class="n">5</span><h4>Write it down again</h4><p>Write the subnet addresses that fit the new mask.</p></div>
+          <div class="arrow">→</div>
+          <div class="step"><span class="n">6</span><h4>Repeat</h4><p>Repeat from step 4 for every remaining, smaller segment.</p></div>
+        </div>
+      </section>
+
+      <section class="block" id="steps">
+        <div class="section-head"><span class="num">§3</span><h2>The 3-step method (per segment, given a host requirement)</h2></div>
+        <div class="steps-ribbon">
+          <span class="s"><b>1</b> Determine number of hosts, convert to binary</span>
+          <span class="s"><b>2</b> Reserve bits in the subnet mask, find the increment</span>
+          <span class="s"><b>3</b> Use the increment to find that segment's network range</span>
+        </div>
+        <p class="note">This is the same 3-step shape used in classic subnetting — the only
+          difference is that VLSM runs it once <em>per segment</em>, largest first, instead of
+          once for the whole design.</p>
+      </section>
+
+      <section class="block" id="ex1">
+        <div class="section-head"><span class="num">Ex.1</span><h2>Worked example — Class C, mixed host counts</h2></div>
+        <p><strong>Given:</strong> <span class="ip">192.168.1.0/24</span>, with five segments
+          needing 120, 60, 30, 2, and 2 hosts respectively (three LANs and two WAN
+          point-to-point links). Sorted largest → smallest: <strong>120, 60, 30, 2, 2</strong>.</p>
+
+        <h3>Segment 1 — 120 hosts</h3>
+        <div class="bitline">
+          <div class="caption">120 → 7 bits needed (2⁷ − 2 = 126 ≥ 120)</div>
+          <div class="octet">
+            <div class="bit off"><div class="pv">128</div><div class="val">0</div></div>
+            <div class="bit borrow"><div class="pv">64</div><div class="val">1</div></div>
+            <div class="bit borrow"><div class="pv">32</div><div class="val">1</div></div>
+            <div class="bit borrow"><div class="pv">16</div><div class="val">1</div></div>
+            <div class="bit borrow"><div class="pv">8</div><div class="val">1</div></div>
+            <div class="bit borrow"><div class="pv">4</div><div class="val">0</div></div>
+            <div class="bit borrow"><div class="pv">2</div><div class="val">0</div></div>
+            <div class="bit borrow"><div class="pv">1</div><div class="val">0</div></div>
+          </div>
+        </div>
+        <p>New mask <strong class="ip">255.255.255.128 /25</strong>, increment = 128.</p>
+        <div class="tblwrap">
+          <table class="compact">
+            <thead><tr><th>Subnet</th><th>First host</th><th>Last host</th><th>Broadcast</th><th></th></tr></thead>
+            <tbody>
+              <tr class="hl"><td class="mono">192.168.1.0</td><td class="mono">.1</td><td class="mono">.126</td><td class="mono">.127</td><td class="tag-ok">✓ 120 hosts</td></tr>
+              <tr><td class="mono">192.168.1.128</td><td class="mono">.129</td><td class="mono">.254</td><td class="mono">.255</td><td class="note">still free — re-subnet next</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Segment 2 — 60 hosts</h3>
+        <div class="bitline">
+          <div class="caption">60 → 6 bits needed (2⁶ − 2 = 62 ≥ 60)</div>
+          <div class="octet">
+            <div class="bit off"><div class="pv">128</div><div class="val">0</div></div>
+            <div class="bit off"><div class="pv">64</div><div class="val">0</div></div>
+            <div class="bit borrow"><div class="pv">32</div><div class="val">1</div></div>
+            <div class="bit borrow"><div class="pv">16</div><div class="val">1</div></div>
+            <div class="bit borrow"><div class="pv">8</div><div class="val">1</div></div>
+            <div class="bit borrow"><div class="pv">4</div><div class="val">1</div></div>
+            <div class="bit borrow"><div class="pv">2</div><div class="val">0</div></div>
+            <div class="bit borrow"><div class="pv">1</div><div class="val">0</div></div>
+          </div>
+        </div>
+        <p>New mask <strong class="ip">255.255.255.192 /26</strong>, increment = 64 — applied to
+          the leftover <span class="ip">192.168.1.128/25</span> block only.</p>
+        <div class="tblwrap">
+          <table class="compact">
+            <thead><tr><th>Subnet</th><th>First host</th><th>Last host</th><th>Broadcast</th><th></th></tr></thead>
+            <tbody>
+              <tr class="used"><td class="mono">192.168.1.0</td><td class="mono">.1</td><td class="mono">.62</td><td class="mono">.63</td><td class="tag-no">✗ inside the 120-host block</td></tr>
+              <tr class="used"><td class="mono">192.168.1.64</td><td class="mono">.65</td><td class="mono">.126</td><td class="mono">.127</td><td class="tag-no">✗ inside the 120-host block</td></tr>
+              <tr class="hl"><td class="mono">192.168.1.128</td><td class="mono">.129</td><td class="mono">.190</td><td class="mono">.191</td><td class="tag-ok">✓ 60 hosts</td></tr>
+              <tr><td class="mono">192.168.1.192</td><td class="mono">.193</td><td class="mono">.254</td><td class="mono">.255</td><td class="note">still free — re-subnet next</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Segment 3 — 30 hosts</h3>
+        <div class="bitline">
+          <div class="caption">30 → 5 bits needed (2⁵ − 2 = 30 ≥ 30)</div>
+          <div class="octet">
+            <div class="bit off"><div class="pv">128</div><div class="val">0</div></div>
+            <div class="bit off"><div class="pv">64</div><div class="val">0</div></div>
+            <div class="bit off"><div class="pv">32</div><div class="val">0</div></div>
+            <div class="bit borrow"><div class="pv">16</div><div class="val">1</div></div>
+            <div class="bit borrow"><div class="pv">8</div><div class="val">1</div></div>
+            <div class="bit borrow"><div class="pv">4</div><div class="val">1</div></div>
+            <div class="bit borrow"><div class="pv">2</div><div class="val">1</div></div>
+            <div class="bit borrow"><div class="pv">1</div><div class="val">0</div></div>
+          </div>
+        </div>
+        <p>New mask <strong class="ip">255.255.255.224 /27</strong>, increment = 32 — applied to
+          the leftover <span class="ip">192.168.1.192/26</span> block.</p>
+        <div class="tblwrap">
+          <table class="compact">
+            <thead><tr><th>Subnet</th><th>First host</th><th>Last host</th><th>Broadcast</th><th></th></tr></thead>
+            <tbody>
+              <tr class="used"><td class="mono">192.168.1.0</td><td class="mono">.1</td><td class="mono">.30</td><td class="mono">.31</td><td class="tag-no">✗ used</td></tr>
+              <tr class="used"><td class="mono">192.168.1.32</td><td class="mono">.33</td><td class="mono">.62</td><td class="mono">.63</td><td class="tag-no">✗ used</td></tr>
+              <tr class="used"><td class="mono">192.168.1.64</td><td class="mono">.65</td><td class="mono">.94</td><td class="mono">.95</td><td class="tag-no">✗ used</td></tr>
+              <tr class="used"><td class="mono">192.168.1.96</td><td class="mono">.97</td><td class="mono">.126</td><td class="mono">.127</td><td class="tag-no">✗ used</td></tr>
+              <tr class="used"><td class="mono">192.168.1.128</td><td class="mono">.129</td><td class="mono">.158</td><td class="mono">.159</td><td class="tag-no">✗ used</td></tr>
+              <tr class="used"><td class="mono">192.168.1.160</td><td class="mono">.161</td><td class="mono">.190</td><td class="mono">.191</td><td class="tag-no">✗ used</td></tr>
+              <tr class="hl"><td class="mono">192.168.1.192</td><td class="mono">.193</td><td class="mono">.222</td><td class="mono">.223</td><td class="tag-ok">✓ 30 hosts</td></tr>
+              <tr><td class="mono">192.168.1.224</td><td class="mono">.225</td><td class="mono">.254</td><td class="mono">.255</td><td class="note">still free — re-subnet next</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Segments 4 &amp; 5 — 2 hosts each (the WAN links)</h3>
+        <div class="bitline">
+          <div class="caption">2 → 2 bits needed (2² − 2 = 2)</div>
+          <div class="octet">
+            <div class="bit off"><div class="pv">128</div><div class="val">0</div></div>
+            <div class="bit off"><div class="pv">64</div><div class="val">0</div></div>
+            <div class="bit off"><div class="pv">32</div><div class="val">0</div></div>
+            <div class="bit off"><div class="pv">16</div><div class="val">0</div></div>
+            <div class="bit off"><div class="pv">8</div><div class="val">0</div></div>
+            <div class="bit off"><div class="pv">4</div><div class="val">0</div></div>
+            <div class="bit borrow"><div class="pv">2</div><div class="val">1</div></div>
+            <div class="bit borrow"><div class="pv">1</div><div class="val">0</div></div>
+          </div>
+        </div>
+        <p>New mask <strong class="ip">255.255.255.252 /30</strong>, increment = 4 — applied to
+          the last leftover <span class="ip">192.168.1.224/27</span> block.</p>
+        <div class="tblwrap">
+          <table class="compact">
+            <thead><tr><th>Subnet</th><th>First host</th><th>Last host</th><th>Broadcast</th><th></th></tr></thead>
+            <tbody>
+              <tr class="hl"><td class="mono">192.168.1.224</td><td class="mono">.225</td><td class="mono">.226</td><td class="mono">.227</td><td class="tag-ok">✓ WAN link R1–R2</td></tr>
+              <tr class="hl"><td class="mono">192.168.1.228</td><td class="mono">.229</td><td class="mono">.230</td><td class="mono">.231</td><td class="tag-ok">✓ WAN link R2–R3</td></tr>
+              <tr><td class="mono">192.168.1.232</td><td class="mono">.233</td><td class="mono">.234</td><td class="mono">.235</td><td class="note">spare</td></tr>
+              <tr><td colspan="4" class="note">… continues in blocks of 4 up to .252 …</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout tip">
+          <span class="label">FINAL ALLOCATION</span>
+          <table class="compact" style="margin-top:8px">
+            <tbody>
+              <tr><td>120 hosts</td><td class="mono">= 192.168.1.0/25</td></tr>
+              <tr><td>60 hosts</td><td class="mono">= 192.168.1.128/26</td></tr>
+              <tr><td>30 hosts</td><td class="mono">= 192.168.1.192/27</td></tr>
+              <tr><td>2 hosts</td><td class="mono">= 192.168.1.224/30</td></tr>
+              <tr><td>2 hosts</td><td class="mono">= 192.168.1.228/30</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="block" id="why">
+        <div class="section-head"><span class="num">§4</span><h2>"Why???" — the gotcha everyone misses</h2></div>
+        <p>Looking only at the /30 requirement in isolation, blocks like
+          <span class="ip">192.168.1.8/30</span>, <span class="ip">.12/30</span>,
+          <span class="ip">.16/30</span> … look perfectly valid — they satisfy "2 hosts" just
+          fine. So why did the worked example skip straight to
+          <span class="ip">192.168.1.224/30</span>?</p>
+        <div class="callout warn">
+          <span class="label">BECAUSE THE SPACE IS ALREADY SPOKEN FOR</span>
+          Addresses <span class="ip">192.168.1.8</span> and <span class="ip">192.168.1.12</span>
+          fall <em>inside</em> <span class="ip">192.168.1.0/25</span> — the block already
+          reserved for the 120-host segment. Likewise, a /27 candidate at <span class="ip">.32</span>
+          falls inside the /26 already reserved for the 60-host segment. Once a larger block is
+          committed, every address inside it is off-limits — VLSM must always carve the
+          <strong>next available</strong> block after everything already assigned, never any
+          arbitrary block that merely satisfies the size requirement.
+        </div>
+        <p>This is exactly why VLSM is done <strong>largest segment first</strong>: it guarantees
+          each smaller mask you introduce afterward only ever eats into space nobody has claimed
+          yet.</p>
+      </section>
+
+      <section class="block" id="summary">
+        <div class="section-head"><span class="num">§5</span><h2>Summary</h2></div>
+        <div class="grid3">
+          <div class="card"><h3>Host formula</h3><div class="formula">2ⁿ − 2 = hosts</div><p>Use this to size the mask for any segment's host requirement.</p></div>
+          <div class="card"><h3>Order of operations</h3><p>Always start with the segment that has the <strong>largest</strong> number of hosts to accommodate, then work down.</p></div>
+          <div class="card"><h3>Classless vs. classful</h3><p>Classless (VLSM) subnetting sizes masks around <strong>hosts</strong>; classful subnetting sizes a single mask around a target <strong>number of subnets</strong>.</p></div>
+        </div>
+      </section>
+
+      <section class="block" id="check">
+        <div class="section-head"><span class="num">§6</span><h2>Self-check</h2></div>
+        <details class="qa">
+          <summary>Why must VLSM be worked from the largest host requirement down to the smallest?</summary>
+          <div class="a">So that every later, smaller subnet is carved from address space that
+            hasn't already been committed to a larger block — reversing the order risks
+            overlapping allocations.</div>
+        </details>
+        <details class="qa">
+          <summary>A segment needs 14 hosts. What mask and increment do you use?</summary>
+          <div class="a">4 host bits (2⁴ − 2 = 14) → mask 255.255.255.240 /28, increment 16.</div>
+        </details>
+        <details class="qa">
+          <summary>What does a classless routing protocol carry in its updates that a classful one doesn't?</summary>
+          <div class="a">The subnet mask — which is exactly what makes VLSM and route
+            summarization possible.</div>
+        </details>
+        <details class="qa">
+          <summary>True or false: VLSM uses the same subnet mask everywhere in the network.</summary>
+          <div class="a">False — that's classful subnetting. VLSM's whole point is applying a
+            <em>different</em> mask per segment based on that segment's actual host count.</div>
+        </details>
+      </section>
+
+      <div class="pagejump">
+        <a class="prev" href="subnetting.html"><span class="dir">← PREV</span>02 · Subnetting</a>
+        <a class="next" href="index.html"><span class="dir">START OVER →</span>01 · Network Models</a>
+      </div>
+      <footer class="site">Networking Reviewer · Network Models · Subnetting · VLSM</footer>
+    </div>
+  </main>
+</div>
+</body>
+</html>

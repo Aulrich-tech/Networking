@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subnetting — Networking Reviewer</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <span class="dot"></span><strong>NET::REVIEWER</strong>
+  <select onchange="if(this.value) location.href=this.value;">
+    <option value="">Jump to page…</option>
+    <option value="index.html">01 · Network Models</option>
+    <option value="subnetting.html">02 · Subnetting</option>
+    <option value="vlsm.html">03 · VLSM</option>
+  </select>
+</div>
+
+<div class="shell">
+  <aside class="sidenav">
+    <div class="brand">
+      <span class="dot"></span>
+      <div><span>NET::REVIEWER</span><small>IP networking study set</small></div>
+    </div>
+    <div class="navgroup-label">TOPICS</div>
+    <nav>
+      <a href="index.html"><span class="idx">01</span> Network Models</a>
+      <a href="subnetting.html" class="active"><span class="idx">02</span> Subnetting</a>
+      <a href="vlsm.html"><span class="idx">03</span> VLSM</a>
+    </nav>
+    <div class="toc">
+      <div class="navgroup-label">ON THIS PAGE</div>
+      <nav>
+        <a href="#what">What &amp; why</a>
+        <a href="#masks">Subnet masks</a>
+        <a href="#classes">IPv4 classes</a>
+        <a href="#nethost">Network vs. host</a>
+        <a href="#cidr">CIDR</a>
+        <a href="#steps">3-step method</a>
+        <a href="#ex1">Example 1 · /27</a>
+        <a href="#fastway">The fast way</a>
+        <a href="#ex2">Example 2 · /30</a>
+        <a href="#ex3">Example 3 · /23</a>
+        <a href="#ex4">Example 4 · /17</a>
+        <a href="#anding">ANDing</a>
+        <a href="#refcard">Quick reference</a>
+        <a href="#check">Self-check</a>
+      </nav>
+    </div>
+  </aside>
+
+  <main>
+    <div class="pagewrap">
+
+      <div class="hero">
+        <div class="kicker">// 02 — CLASSFUL-STYLE SUBNETTING</div>
+        <h1>Subnetting</h1>
+        <p class="lead">Breaking one large network into a fixed number of equally-sized smaller
+          networks — driven by "how many subnets do I need," using a single subnet mask across
+          the whole design.</p>
+        <div class="badges">
+          <span class="badge">2ˣ = subnets</span>
+          <span class="badge">2ʸ − 2 = hosts</span>
+          <span class="badge">CIDR /8 – /30</span>
+          <span class="badge">Increment = 256 − mask</span>
+        </div>
+      </div>
+
+      <section class="block" id="what">
+        <div class="section-head"><span class="num">§1</span><h2>What subnetting is, and why bother</h2></div>
+        <p>Subnetting takes one larger network and breaks it into a bunch of smaller networks.</p>
+        <div class="grid3">
+          <div class="card"><h3>Security</h3><p>Improved network security through isolation.</p></div>
+          <div class="card"><h3>Performance</h3><p>Better network performance and speed; less
+            congestion.</p></div>
+          <div class="card"><h3>Manageability</h3><p>Administration is a breeze and growth is
+            easier to control.</p></div>
+        </div>
+      </section>
+
+      <section class="block" id="masks">
+        <div class="section-head"><span class="num">§2</span><h2>Subnet masks</h2></div>
+        <p>A subnet mask is a 32-bit value that lets the recipient of IP packets distinguish
+          the <strong>network ID</strong> portion of an address from the <strong>host ID</strong>
+          portion. The <code>1</code>s in the mask mark the network/subnet bits.</p>
+        <div class="callout warn">
+          <span class="label">DEFAULTS DON'T SHRINK</span>
+          Not every network needs subnets — some just use the default mask. Defaults can only
+          ever be extended, never reduced: Class A can't go below <code>255.0.0.0</code>,
+          Class B not below <code>255.255.0.0</code>, Class C not below <code>255.255.255.0</code>.
+        </div>
+        <div class="tblwrap">
+          <table class="compact">
+            <thead><tr><th>Class</th><th>Format</th><th>Default subnet mask</th></tr></thead>
+            <tbody>
+              <tr><td>A</td><td class="mono">Network.Node.Node.Node</td><td class="mono">255.0.0.0</td></tr>
+              <tr><td>B</td><td class="mono">Network.Network.Node.Node</td><td class="mono">255.255.0.0</td></tr>
+              <tr><td>C</td><td class="mono">Network.Network.Network.Node</td><td class="mono">255.255.255.0</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="block" id="classes">
+        <div class="section-head"><span class="num">§3</span><h2>IPv4 address classes</h2></div>
+        <div class="tblwrap">
+          <table>
+            <thead><tr><th>Class</th><th>1st octet range</th><th>1st octet bits</th><th>Net(N)/Host(H)</th><th>Default mask</th><th># networks &amp; hosts</th></tr></thead>
+            <tbody>
+              <tr><td>A</td><td class="mono">1–127**</td><td class="mono">00000000–01111111</td><td class="mono">N.H.H.H</td><td class="mono">255.0.0.0</td><td>128 nets (2⁷) · 16,777,214 hosts/net (2²⁴−2)</td></tr>
+              <tr><td>B</td><td class="mono">128–191</td><td class="mono">10000000–10111111</td><td class="mono">N.N.H.H</td><td class="mono">255.255.0.0</td><td>16,384 nets (2¹⁴) · 65,534 hosts/net (2¹⁶−2)</td></tr>
+              <tr><td>C</td><td class="mono">192–223</td><td class="mono">11000000–11011111</td><td class="mono">N.N.N.H</td><td class="mono">255.255.255.0</td><td>2,097,150 nets (2²¹) · 254 hosts/net (2⁸−2)</td></tr>
+              <tr><td>D</td><td class="mono">224–239</td><td class="mono">11100000–11101111</td><td>NA (multicast)</td><td>—</td><td>—</td></tr>
+              <tr><td>E</td><td class="mono">240–255</td><td class="mono">11110000–11111111</td><td>NA (experimental)</td><td>—</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">** All-zeros and all-ones are invalid host addresses.</p>
+      </section>
+
+      <section class="block" id="nethost">
+        <div class="section-head"><span class="num">§4</span><h2>Network vs. host addresses</h2></div>
+        <p>Example: <span class="ip">130.57.1.56</span> is a Class B address, so the first two
+          octets are the network and the last two are the host.</p>
+        <div class="grid2">
+          <div class="card">
+            <h3>Plain Class B address</h3>
+            <p class="note">Network address</p><p class="ip">130.57. → 1000 0010 . 0011 1001</p>
+            <p class="note">Host address</p><p class="ip">1.56 → 0000 0001 . 0011 1000</p>
+          </div>
+          <div class="card">
+            <h3>Class B address, subnetted</h3>
+            <p class="note">Network address (unchanged)</p><p class="ip">1000 0010 . 0011 1001</p>
+            <p class="note">Subnet | Host address (borrowed from the host portion)</p><p class="ip">0000 0001 . 0011 1000</p>
+          </div>
+        </div>
+        <p>To create a subnet, take bits from the host portion and reserve them for the subnet
+          address. Fewer bits are then left for hosts — <strong>the more subnets you carve out,
+          the fewer host bits remain.</strong></p>
+      </section>
+
+      <section class="block" id="cidr">
+        <div class="section-head"><span class="num">§5</span><h2>Classless Inter-Domain Routing (CIDR)</h2></div>
+        <p>CIDR describes a network by its base address and the number of bits used for the
+          network portion, e.g. <span class="ip">10.0.0.0/8</span> — 24 bits remain for host
+          numbering, so a maximum of 2²⁴−2 host addresses. The slash counts every masked
+          (<code>1</code>) bit, regardless of class.</p>
+        <div class="callout rule">
+          <span class="label">RULE</span>
+          The largest subnet mask available, for any class, is <code>/30</code> — you must always
+          keep at least 2 host bits.
+        </div>
+        <div class="grid2">
+          <div class="tblwrap">
+            <table class="compact">
+              <thead><tr><th>Mask</th><th>CIDR</th></tr></thead>
+              <tbody>
+                <tr><td class="mono">255.0.0.0</td><td class="mono">/8</td></tr>
+                <tr><td class="mono">255.128.0.0</td><td class="mono">/9</td></tr>
+                <tr><td class="mono">255.192.0.0</td><td class="mono">/10</td></tr>
+                <tr><td class="mono">255.224.0.0</td><td class="mono">/11</td></tr>
+                <tr><td class="mono">255.240.0.0</td><td class="mono">/12</td></tr>
+                <tr><td class="mono">255.248.0.0</td><td class="mono">/13</td></tr>
+                <tr><td class="mono">255.252.0.0</td><td class="mono">/14</td></tr>
+                <tr><td class="mono">255.254.0.0</td><td class="mono">/15</td></tr>
+                <tr><td class="mono">255.255.0.0</td><td class="mono">/16</td></tr>
+                <tr><td class="mono">255.255.128.0</td><td class="mono">/17</td></tr>
+                <tr><td class="mono">255.255.192.0</td><td class="mono">/18</td></tr>
+                <tr><td class="mono">255.255.224.0</td><td class="mono">/19</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="tblwrap">
+            <table class="compact">
+              <thead><tr><th>Mask</th><th>CIDR</th></tr></thead>
+              <tbody>
+                <tr><td class="mono">255.255.240.0</td><td class="mono">/20</td></tr>
+                <tr><td class="mono">255.255.248.0</td><td class="mono">/21</td></tr>
+                <tr><td class="mono">255.255.252.0</td><td class="mono">/22</td></tr>
+                <tr><td class="mono">255.255.254.0</td><td class="mono">/23</td></tr>
+                <tr><td class="mono">255.255.255.0</td><td class="mono">/24</td></tr>
+                <tr><td class="mono">255.255.255.128</td><td class="mono">/25</td></tr>
+                <tr><td class="mono">255.255.255.192</td><td class="mono">/26</td></tr>
+                <tr><td class="mono">255.255.255.224</td><td class="mono">/27</td></tr>
+                <tr><td class="mono">255.255.255.240</td><td class="mono">/28</td></tr>
+                <tr><td class="mono">255.255.255.248</td><td class="mono">/29</td></tr>
+                <tr><td class="mono">255.255.255.252</td><td class="mono">/30</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <p class="note"><code>/8</code>–<code>/15</code>: Class A only. <code>/16</code>–<code>/23</code>:
+          Class A &amp; B. <code>/24</code>–<code>/30</code>: Class A, B &amp; C — one reason
+          large organizations prefer Class A space: it can use every possible mask, giving
+          maximum design flexibility.</p>
+      </section>
+
+      <section class="block" id="steps">
+        <div class="section-head"><span class="num">§6</span><h2>The 3-step method (given a required number of networks)</h2></div>
+        <div class="steps-ribbon">
+          <span class="s"><b>1</b> Determine # of networks needed, convert to binary</span>
+          <span class="s"><b>2</b> Reserve that many bits in the subnet mask, find the increment</span>
+          <span class="s"><b>3</b> Use the increment to write out every network range</span>
+        </div>
+      </section>
+
+      <section class="block" id="ex1">
+        <div class="section-head"><span class="num">Ex.1</span><h2>Worked example — Class C, 5 networks</h2></div>
+        <p><strong>Given:</strong> <span class="ip">192.168.1.0/24</span>, needing 5 networks
+          (3 LANs + 2 WAN point-to-point links).</p>
+
+        <h3>Step 1 — networks → binary</h3>
+        <div class="bitline">
+          <div class="caption">No. of networks = 5</div>
+          <div class="octet">
+            <div class="bit off"><div class="pv">128</div><div class="val">0</div></div>
+            <div class="bit off"><div class="pv">64</div><div class="val">0</div></div>
+            <div class="bit off"><div class="pv">32</div><div class="val">0</div></div>
+            <div class="bit off"><div class="pv">16</div><div class="val">0</div></div>
+            <div class="bit off"><div class="pv">8</div><div class="val">0</div></div>
+            <div class="bit borrow"><div class="pv">4</div><div class="val">1</div></div>
+            <div class="bit borrow"><div class="pv">2</div><div class="val">0</div></div>
+            <div class="bit borrow"><div class="pv">1</div><div class="val">1</div></div>
+          </div>
+          <p class="note">3 bits needed to represent 5 (amber = bits that will be borrowed).</p>
+        </div>
+
+        <h3>Step 2 — reserve bits, find the increment</h3>
+        <p><code>/24</code> (255.255.255.0) + 3 borrowed bits → new mask <strong class="ip">255.255.255.224 /27</strong>,
+          increment (block size) = <strong>32</strong>.</p>
+
+        <h3>Step 3 — network ranges</h3>
+        <div class="tblwrap">
+          <table>
+            <thead><tr><th>Subnet</th><th>First host</th><th>Last host</th><th>Broadcast</th><th>Mask</th><th>Assigned to</th></tr></thead>
+            <tbody>
+              <tr class="hl"><td class="mono">192.168.1.0</td><td class="mono">.1</td><td class="mono">.30</td><td class="mono">.31</td><td class="mono">/27</td><td>LAN 1</td></tr>
+              <tr class="hl"><td class="mono">192.168.1.32</td><td class="mono">.33</td><td class="mono">.62</td><td class="mono">.63</td><td class="mono">/27</td><td>LAN 2</td></tr>
+              <tr class="hl"><td class="mono">192.168.1.64</td><td class="mono">.65</td><td class="mono">.94</td><td class="mono">.95</td><td class="mono">/27</td><td>LAN 3</td></tr>
+              <tr class="hl"><td class="mono">192.168.1.96</td><td class="mono">.97</td><td class="mono">.126</td><td class="mono">.127</td><td class="mono">/27</td><td>WAN link R1–R2</td></tr>
+              <tr class="hl"><td class="mono">192.168.1.128</td><td class="mono">.129</td><td class="mono">.158</td><td class="mono">.159</td><td class="mono">/27</td><td>WAN link R2–R3</td></tr>
+              <tr><td class="mono">192.168.1.160</td><td class="mono">.161</td><td class="mono">.190</td><td class="mono">.191</td><td class="mono">/27</td><td class="note">spare</td></tr>
+              <tr><td class="mono">192.168.1.192</td><td class="mono">.193</td><td class="mono">.222</td><td class="mono">.223</td><td class="mono">/27</td><td class="note">spare</td></tr>
+              <tr><td class="mono">192.168.1.224</td><td class="mono">.225</td><td class="mono">.254</td><td class="mono">.255</td><td class="mono">/27</td><td class="note">spare</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">8 subnets total, 30 usable hosts each — only 5 are needed, 3 are left spare
+          for future growth.</p>
+      </section>
+
+      <section class="block" id="fastway">
+        <div class="section-head"><span class="num">§7</span><h2>Subnetting the fast way — 5 questions</h2></div>
+        <p>Skip the long-hand binary and just answer five questions using powers of two.</p>
+
+        <div class="grid2">
+          <div class="card">
+            <h3>1 · How many subnets?</h3>
+            <div class="formula">2ˣ = subnets</div>
+            <p><em>x</em> = number of masked bits (the 1s). E.g. mask <span class="ip">11100000</span>
+              → 2³ = <strong>8 subnets</strong>.</p>
+          </div>
+          <div class="card">
+            <h3>2 · How many hosts per subnet?</h3>
+            <div class="formula">2ʸ − 2 = hosts</div>
+            <p><em>y</em> = number of unmasked bits (the 0s). E.g. <span class="ip">11100000</span>
+              → 2⁵ − 2 = <strong>30 hosts</strong>. Subtract 2 for the subnet ID and broadcast
+              address — neither is a valid host.</p>
+          </div>
+          <div class="card">
+            <h3>3 · What are the valid subnets?</h3>
+            <div class="formula">256 − mask = increment</div>
+            <p>E.g. 256 − 224 = <strong>32</strong>. Count up in blocks of 32 from zero until you
+              reach the mask value: 0, 32, 64, 96, 128, 160, 192, 224.</p>
+          </div>
+          <div class="card">
+            <h3>4 · Broadcast of each subnet?</h3>
+            <p>Always the number right before the next subnet starts. The 0 subnet's broadcast
+              is 31 (next subnet is 32); the 32 subnet's broadcast is 63 (next is 64). The very
+              last subnet's broadcast is always <strong>.255</strong>.</p>
+          </div>
+          <div class="card">
+            <h3>5 · What are the valid hosts?</h3>
+            <p>Everything strictly between the subnet address and its broadcast address. E.g.
+              subnet 32 / broadcast 63 → valid hosts are <strong>33–62</strong>.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="block" id="ex2">
+        <div class="section-head"><span class="num">Ex.2</span><h2>Worked example — Class C, 50 networks</h2></div>
+        <p><strong>Given:</strong> <span class="ip">195.5.20.0/24</span>, break into 50 networks.</p>
+        <div class="bitline">
+          <div class="caption">No. of networks = 50 → 6 bits needed (2⁶ = 64 ≥ 50)</div>
+          <div class="octet">
+            <div class="bit off"><div class="pv">128</div><div class="val">0</div></div>
+            <div class="bit off"><div class="pv">64</div><div class="val">0</div></div>
+            <div class="bit borrow"><div class="pv">32</div><div class="val">1</div></div>
+            <div class="bit borrow"><div class="pv">16</div><div class="val">1</div></div>
+            <div class="bit borrow"><div class="pv">8</div><div class="val">0</div></div>
+            <div class="bit borrow"><div class="pv">4</div><div class="val">0</div></div>
+            <div class="bit borrow"><div class="pv">2</div><div class="val">1</div></div>
+            <div class="bit borrow"><div class="pv">1</div><div class="val">0</div></div>
+          </div>
+        </div>
+        <p>New mask <strong class="ip">255.255.255.252 /30</strong>, increment = 4, hosts =
+          2² − 2 = <strong>2</strong> per subnet.</p>
+        <div class="tblwrap">
+          <table class="compact">
+            <thead><tr><th>Subnet</th><th>First host</th><th>Last host</th><th>Broadcast</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">195.5.20.0</td><td class="mono">.1</td><td class="mono">.2</td><td class="mono">.3</td></tr>
+              <tr><td class="mono">195.5.20.4</td><td class="mono">.5</td><td class="mono">.6</td><td class="mono">.7</td></tr>
+              <tr><td class="mono">195.5.20.8</td><td class="mono">.9</td><td class="mono">.10</td><td class="mono">.11</td></tr>
+              <tr><td colspan="4" class="note">… continues in blocks of 4 …</td></tr>
+              <tr><td class="mono">195.5.20.252</td><td class="mono">.253</td><td class="mono">.254</td><td class="mono">.255</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">2⁶ = 64 subnets available, only 50 are needed.</p>
+      </section>
+
+      <section class="block" id="ex3">
+        <div class="section-head"><span class="num">Ex.3</span><h2>Worked example — Class B, 100 networks</h2></div>
+        <p><strong>Given:</strong> <span class="ip">150.5.0.0/16</span>, break into 100 networks.</p>
+        <div class="bitline">
+          <div class="caption">No. of networks = 100 → 7 bits needed (2⁷ = 128 ≥ 100)</div>
+          <div class="octet">
+            <div class="bit off"><div class="pv">128</div><div class="val">0</div></div>
+            <div class="bit borrow"><div class="pv">64</div><div class="val">1</div></div>
+            <div class="bit borrow"><div class="pv">32</div><div class="val">1</div></div>
+            <div class="bit borrow"><div class="pv">16</div><div class="val">0</div></div>
+            <div class="bit borrow"><div class="pv">8</div><div class="val">0</div></div>
+            <div class="bit borrow"><div class="pv">4</div><div class="val">1</div></div>
+            <div class="bit borrow"><div class="pv">2</div><div class="val">0</div></div>
+            <div class="bit borrow"><div class="pv">1</div><div class="val">0</div></div>
+          </div>
+        </div>
+        <p>New mask <strong class="ip">255.255.254.0 /23</strong>, increment = 2 (in the 3rd octet),
+          hosts = 2⁹ − 2 = <strong>510</strong> per subnet.</p>
+        <div class="tblwrap">
+          <table class="compact">
+            <thead><tr><th>Subnet</th><th>First host</th><th>Last host</th><th>Broadcast</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">150.5.0.0</td><td class="mono">150.5.0.1</td><td class="mono">150.5.1.254</td><td class="mono">150.5.1.255</td></tr>
+              <tr><td class="mono">150.5.2.0</td><td class="mono">150.5.2.1</td><td class="mono">150.5.3.254</td><td class="mono">150.5.3.255</td></tr>
+              <tr><td class="mono">150.5.4.0</td><td class="mono">150.5.4.1</td><td class="mono">150.5.5.254</td><td class="mono">150.5.5.255</td></tr>
+              <tr><td colspan="4" class="note">… continues in blocks of 2 (3rd octet) …</td></tr>
+              <tr><td class="mono">150.5.254.0</td><td class="mono">150.5.254.1</td><td class="mono">150.5.255.254</td><td class="mono">150.5.255.255</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">2⁷ = 128 subnets available (255+255 = 510 usable host addresses per
+          subnet, spanning two octets).</p>
+      </section>
+
+      <section class="block" id="ex4">
+        <div class="section-head"><span class="num">Ex.4</span><h2>Worked example — Class A, 500 networks</h2></div>
+        <p><strong>Given:</strong> <span class="ip">10.0.0.0/8</span>, break into 500 networks.</p>
+        <div class="bitline">
+          <div class="caption">No. of networks = 500 → 9 bits needed (2⁹ = 512 ≥ 500), spanning two octets</div>
+          <div class="octet">
+            <div class="bit borrow"><div class="pv">128</div><div class="val">1</div></div>
+            <div class="bit borrow"><div class="pv">64</div><div class="val">1</div></div>
+            <div class="bit borrow"><div class="pv">32</div><div class="val">1</div></div>
+            <div class="bit borrow"><div class="pv">16</div><div class="val">1</div></div>
+            <div class="bit borrow"><div class="pv">8</div><div class="val">1</div></div>
+            <div class="bit borrow"><div class="pv">4</div><div class="val">1</div></div>
+            <div class="bit borrow"><div class="pv">2</div><div class="val">1</div></div>
+            <div class="bit borrow"><div class="pv">1</div><div class="val">1</div></div>
+          </div>
+          <div class="octet">
+            <div class="bit borrow"><div class="pv">128</div><div class="val">1</div></div>
+            <div class="bit off"><div class="pv">64</div><div class="val">0</div></div>
+            <div class="bit off"><div class="pv">32</div><div class="val">0</div></div>
+            <div class="bit off"><div class="pv">16</div><div class="val">0</div></div>
+            <div class="bit off"><div class="pv">8</div><div class="val">0</div></div>
+            <div class="bit off"><div class="pv">4</div><div class="val">0</div></div>
+            <div class="bit off"><div class="pv">2</div><div class="val">0</div></div>
+            <div class="bit off"><div class="pv">1</div><div class="val">0</div></div>
+          </div>
+          <p class="note">2nd octet: fully borrowed (8 bits). 3rd octet: 1 more bit borrowed.</p>
+        </div>
+        <p>New mask <strong class="ip">255.255.128.0 /17</strong>, increment = 128 (in the 2nd
+          octet), hosts = 2¹⁵ − 2 = <strong>32,766</strong> per subnet.</p>
+        <div class="tblwrap">
+          <table class="compact">
+            <thead><tr><th>Subnet</th><th>First host</th><th>Last host</th><th>Broadcast</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">10.0.0.0</td><td class="mono">10.0.0.1</td><td class="mono">10.0.127.254</td><td class="mono">10.0.127.255</td></tr>
+              <tr><td class="mono">10.0.128.0</td><td class="mono">10.0.128.1</td><td class="mono">10.0.255.254</td><td class="mono">10.0.255.255</td></tr>
+              <tr><td class="mono">10.1.0.0</td><td class="mono">10.1.0.1</td><td class="mono">10.1.127.254</td><td class="mono">10.1.127.255</td></tr>
+              <tr><td colspan="4" class="note">… continues in blocks of 128 (2nd octet) …</td></tr>
+              <tr><td class="mono">10.255.128.0</td><td class="mono">10.255.128.1</td><td class="mono">10.255.255.254</td><td class="mono">10.255.255.255</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">2⁹ = 512 subnets available, only 500 are needed.</p>
+      </section>
+
+      <section class="block" id="anding">
+        <div class="section-head"><span class="num">§8</span><h2>The ANDing process</h2></div>
+        <p>Given a host address and its mask, AND the two together bit-by-bit to reveal the
+          network address that host belongs to.</p>
+        <div class="card">
+          <p class="note">Given: <span class="ip">150.5.4.22 /23</span></p>
+          <p class="ip">Host&nbsp;&nbsp;&nbsp;150.5.4.22&nbsp;&nbsp; 10010110.00000101.00000100.00010110</p>
+          <p class="ip">Mask&nbsp;&nbsp;255.255.254.0&nbsp; 11111111.11111111.11111110.00000000</p>
+          <p class="ip" style="color:var(--good)">AND&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 10010110.00000101.00000100.00000000</p>
+          <p>Network address: <strong class="ip">150.5.4.0</strong> — so host
+            150.5.4.22 belongs to network 150.5.4.0 (mask /23).</p>
+        </div>
+      </section>
+
+      <section class="block" id="refcard">
+        <div class="section-head"><span class="num">§9</span><h2>Quick reference</h2></div>
+        <div class="grid2">
+          <div class="tblwrap">
+            <table class="compact">
+              <thead><tr><th>Power</th><th>Value</th></tr></thead>
+              <tbody>
+                <tr><td class="mono">2¹</td><td class="mono">2</td></tr>
+                <tr><td class="mono">2²</td><td class="mono">4</td></tr>
+                <tr><td class="mono">2³</td><td class="mono">8</td></tr>
+                <tr><td class="mono">2⁴</td><td class="mono">16</td></tr>
+                <tr><td class="mono">2⁵</td><td class="mono">32</td></tr>
+                <tr><td class="mono">2⁶</td><td class="mono">64</td></tr>
+                <tr><td class="mono">2⁷</td><td class="mono">128</td></tr>
+                <tr><td class="mono">2⁸</td><td class="mono">256</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="tblwrap">
+            <table class="compact">
+              <thead><tr><th>Power</th><th>Value</th></tr></thead>
+              <tbody>
+                <tr><td class="mono">2⁹</td><td class="mono">512</td></tr>
+                <tr><td class="mono">2¹⁰</td><td class="mono">1,024</td></tr>
+                <tr><td class="mono">2¹¹</td><td class="mono">2,048</td></tr>
+                <tr><td class="mono">2¹²</td><td class="mono">4,096</td></tr>
+                <tr><td class="mono">2¹³</td><td class="mono">8,192</td></tr>
+                <tr><td class="mono">2¹⁴</td><td class="mono">16,384</td></tr>
+                <tr><td class="mono">2¹⁵</td><td class="mono">32,768</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="callout tip">
+          <span class="label">"FINGER METHOD" TRICK</span>
+          The same 8 mask values repeat in every octet: <span class="ip">128, 192, 224, 240,
+          248, 252, 254, 255</span>. Count 8 slashes per hand — first hand = 1st octet
+          (/1–/8), and the same pattern repeats for /9–/16, /17–/24, and /25–/32 in the
+          following octets.
+        </div>
+      </section>
+
+      <section class="block" id="check">
+        <div class="section-head"><span class="num">§10</span><h2>Self-check</h2></div>
+        <details class="qa">
+          <summary>You need 10 subnets from a Class C network. How many bits must you borrow?</summary>
+          <div class="a">4 bits (2⁴ = 16 ≥ 10). Borrowing 3 bits only gives 2³ = 8 subnets, which
+            isn't enough.</div>
+        </details>
+        <details class="qa">
+          <summary>A subnet mask of 255.255.255.240 supports how many hosts per subnet?</summary>
+          <div class="a">4 host bits remain → 2⁴ − 2 = 14 usable hosts.</div>
+        </details>
+        <details class="qa">
+          <summary>What is the increment for a /28 mask, and what are the first three subnets after 0?</summary>
+          <div class="a">256 − 240 = 16. Subnets: 0, 16, 32, 48 …</div>
+        </details>
+        <details class="qa">
+          <summary>Why can /24–/30 be used on Class A, B, or C — but /9–/15 only on Class A?</summary>
+          <div class="a">Those prefix lengths fall inside the default network portion of Class B
+            and C (already all network bits by /16 and /24 respectively), so there's no host
+            octet left to borrow from at that boundary.</div>
+        </details>
+      </section>
+
+      <div class="pagejump">
+        <a class="prev" href="index.html"><span class="dir">← PREV</span>01 · Network Models</a>
+        <a class="next" href="vlsm.html"><span class="dir">NEXT →</span>03 · VLSM</a>
+      </div>
+      <footer class="site">Networking Reviewer · Network Models · Subnetting · VLSM</footer>
+    </div>
+  </main>
+</div>
+</body>
+</html>
