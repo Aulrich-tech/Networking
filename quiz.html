@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz — Networking Reviewer</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  /* ---- quiz-page-only additions, reusing the theme's variables ---- */
+  .quiz-meta{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:16px 0 6px; }
+  .scorebox{
+    position:sticky; top:0; z-index:4; display:flex; align-items:center; gap:16px;
+    background:var(--panel); border:1px solid var(--border-soft); border-radius:var(--radius);
+    padding:12px 18px; margin:18px 0 30px;
+  }
+  .scorebox .big{ font-family:var(--mono); font-size:1.3rem; color:var(--amber); }
+  .scorebox .bar{ flex:1; height:8px; border-radius:99px; background:var(--panel-2); overflow:hidden; border:1px solid var(--border-soft); }
+  .scorebox .bar > i{ display:block; height:100%; width:0%; background:var(--teal); transition:width .25s ease; }
+  .scorebox .hint{ color:var(--muted); font-size:.82rem; }
+  #resultLine{ font-family:var(--mono); color:var(--muted); }
+
+  .qcard{
+    background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+    padding:18px 20px; margin:14px 0; scroll-margin-top:70px;
+  }
+  .qcard .qhead{ display:flex; gap:10px; align-items:baseline; margin-bottom:8px; }
+  .qcard .qnum{ font-family:var(--mono); color:var(--teal); font-size:.82rem; flex:0 0 auto; }
+  .qcard .qtext{ font-weight:600; color:#fbfcff; }
+  .qcard .topic{ margin-left:auto; font-family:var(--mono); font-size:.68rem; color:var(--muted-2); border:1px solid var(--border-soft); padding:2px 8px; border-radius:999px; white-space:nowrap; }
+  .opts{ display:flex; flex-direction:column; gap:6px; margin:10px 0 4px; }
+  .opt{
+    display:flex; gap:10px; align-items:flex-start; padding:9px 12px; border-radius:8px;
+    border:1px solid var(--border-soft); background:var(--panel-2); cursor:pointer; font-size:.93rem;
+  }
+  .opt:hover{ border-color:var(--border); }
+  .opt input{ margin-top:3px; accent-color:var(--teal); }
+  .opt.correct{ border-color:var(--good); background:rgba(111,219,156,.08); }
+  .opt.incorrect{ border-color:var(--bad); background:rgba(240,113,111,.08); }
+  .opt.locked{ cursor:default; }
+  .explain{
+    display:none; margin-top:10px; padding:10px 14px; border-left:3px solid var(--blue);
+    background:var(--panel-2); border-radius:8px; color:var(--muted); font-size:.86rem;
+  }
+  .explain.show{ display:block; }
+  .explain b{ color:var(--text); }
+  .qcard.answered .explain{ display:block; }
+
+  .controls{ display:flex; flex-wrap:wrap; gap:12px; margin:26px 0; }
+  .btn{
+    font-family:var(--sans); font-weight:600; font-size:.92rem; cursor:pointer;
+    border-radius:8px; padding:11px 20px; border:1px solid var(--border);
+  }
+  .btn.primary{ background:var(--teal); border-color:var(--teal); color:var(--ink); }
+  .btn.primary:hover{ filter:brightness(1.08); }
+  .btn.ghost{ background:var(--panel-2); color:var(--text); }
+  .btn.ghost:hover{ background:var(--card); }
+
+  .jumprow{ display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 24px; }
+  .jumprow a{
+    font-family:var(--mono); font-size:.72rem; width:28px; height:28px; display:flex;
+    align-items:center; justify-content:center; border-radius:6px; border:1px solid var(--border-soft);
+    color:var(--muted); background:var(--panel-2);
+  }
+  .jumprow a.done{ border-color:var(--good); color:var(--good); }
+  .jumprow a.wrong{ border-color:var(--bad); color:var(--bad); }
+
+  #finalPanel{ display:none; }
+  #finalPanel.show{ display:block; }
+  .grade{ font-family:var(--mono); font-size:2.4rem; color:var(--amber); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="dot"></span><strong>NET::REVIEWER</strong>
+  <select onchange="if(this.value) location.href=this.value;">
+    <option value="">Jump to page…</option>
+    <option value="index.html">01 · Network Models</option>
+    <option value="subnetting.html">02 · Subnetting</option>
+    <option value="vlsm.html">03 · VLSM</option>
+    <option value="quiz.html" selected>04 · Quiz</option>
+  </select>
+</div>
+
+<div class="shell">
+  <aside class="sidenav">
+    <div class="brand">
+      <span class="dot"></span>
+      <div><span>NET::REVIEWER</span><small>IP networking study set</small></div>
+    </div>
+    <div class="navgroup-label">TOPICS</div>
+    <nav>
+      <a href="index.html"><span class="idx">01</span> Network Models</a>
+      <a href="subnetting.html"><span class="idx">02</span> Subnetting</a>
+      <a href="vlsm.html"><span class="idx">03</span> VLSM</a>
+      <a href="quiz.html" class="active"><span class="idx">04</span> Quiz</a>
+    </nav>
+    <div class="toc">
+      <div class="navgroup-label">ON THIS PAGE</div>
+      <nav>
+        <a href="#q1">Jump to Q1</a>
+        <a href="#final">Results</a>
+      </nav>
+    </div>
+  </aside>
+
+  <main>
+    <div class="pagewrap">
+
+      <div class="hero">
+        <div class="kicker">// 04 — SELF-TEST</div>
+        <h1>Quiz: OSI Layers &amp; Addressing</h1>
+        <p class="lead">50 objective (multiple-choice) items. Mostly the OSI model — layer functions,
+          devices, protocols, and encapsulation vocabulary — with a scattering of subnetting and VLSM
+          questions to keep you honest. Pick an answer to lock it in and see the explanation instantly;
+          your running score updates as you go.</p>
+        <div class="badges">
+          <span class="badge">50 items</span>
+          <span class="badge">Auto-graded</span>
+          <span class="badge">Instant feedback</span>
+        </div>
+      </div>
+
+      <div class="scorebox">
+        <span class="big" id="scoreNow">0 / 50</span>
+        <div class="bar"><i id="scoreBar"></i></div>
+        <span class="hint" id="answeredHint">0 answered</span>
+      </div>
+
+      <div class="jumprow" id="jumprow"></div>
+
+      <div id="quizRoot"></div>
+
+      <div class="controls">
+        <button class="btn primary" id="gradeBtn">Grade remaining &amp; show results</button>
+        <button class="btn ghost" id="resetBtn">Reset quiz</button>
+      </div>
+
+      <div class="card" id="finalPanel">
+        <div id="final"></div>
+        <h3>Result</h3>
+        <div class="grade" id="gradeText">—</div>
+        <p id="resultLine"></p>
+      </div>
+
+      <div class="pagejump">
+        <a href="vlsm.html"><span class="dir">← BACK</span>03 · VLSM</a>
+        <a class="next" href="index.html"><span class="dir">RESTART →</span>01 · Network Models</a>
+      </div>
+      <footer class="site">Networking Reviewer · Network Models · Subnetting · VLSM · Quiz</footer>
+    </div>
+  </main>
+</div>
+
+<script>
+/* ============================================================
+   50 objective items. Each: q (text), topic (badge), options[],
+   correct (index), explain (shown after answering).
+   ============================================================ */
+const QUESTIONS = [
+{q:"Which OSI layer is responsible for logical (IP) addressing and best-path determination?",topic:"OSI L3",options:["Data Link","Network","Transport","Session"],correct:1,explain:"Layer 3 (Network) assigns logical IP addresses and selects the best path between hosts, offering best-effort delivery with no built-in error correction."},
+{q:"At which layer does a switch primarily operate?",topic:"OSI devices",options:["Physical","Data Link","Network","Transport"],correct:1,explain:"Switches forward frames based on MAC addresses, which is Data Link (Layer 2) work."},
+{q:"Which layer is concerned with establishing, managing, and terminating sessions between applications?",topic:"OSI L5",options:["Presentation","Session","Transport","Application"],correct:1,explain:"Layer 5, Session. Rule of thumb: a remote connection = a session."},
+{q:"What is the Layer 4 protocol data unit (PDU) called?",topic:"Encapsulation",options:["Frame","Packet","Segment","Bit"],correct:2,explain:"Transport-layer data is called a segment. Sequence: Data → Segment (L4) → Packet (L3) → Frame (L2) → Bits (L1)."},
+{q:"Which layer adds a header to form a 'packet'?",topic:"Encapsulation",options:["Transport","Network","Data Link","Physical"],correct:1,explain:"The Network layer (Layer 3) wraps the segment with a network header to form a packet."},
+{q:"Routers primarily operate at which OSI layer?",topic:"OSI devices",options:["Layer 2","Layer 3","Layer 4","Layer 7"],correct:1,explain:"Routers make forwarding decisions using Layer 3 (Network) logical addressing."},
+{q:"Which layer negotiates data-transfer syntax and handles formats like JPG, MP3, and PDF?",topic:"OSI L6",options:["Application","Presentation","Session","Data Link"],correct:1,explain:"Layer 6, Presentation, ensures data is readable by the receiving system by formatting/structuring it."},
+{q:"TCP and UDP operate at which layer of the OSI model?",topic:"OSI L4",options:["Network","Transport","Session","Data Link"],correct:1,explain:"Layer 4 (Transport) is where TCP and UDP live, handling reliability and flow control between hosts."},
+{q:"Which OSI layer deals with bits, voltages, and physical media such as copper or fiber?",topic:"OSI L1",options:["Physical","Data Link","Network","Transport"],correct:0,explain:"Layer 1 (Physical) covers the raw transmission medium: cabling, connectors, voltages, and data rates."},
+{q:"MAC addressing is a function of which layer?",topic:"OSI L2",options:["Network","Data Link","Transport","Physical"],correct:1,explain:"Physical (MAC) addressing, local topology, and error notification are Data Link (Layer 2) responsibilities."},
+{q:"Which mnemonic correctly lists the OSI layers from Layer 7 down to Layer 1?",topic:"OSI mnemonic",options:["Please Do Not Throw Sausage Pizza Away","All People Seem To Need Data Processing","Application Presents Session To Network Devices Physically","Data Packets Need Time To Send Properly"],correct:1,explain:"Top-down (7→1): 'All People Seem To Need Data Processing.'"},
+{q:"Which mnemonic correctly lists the OSI layers from Layer 1 up to Layer 7?",topic:"OSI mnemonic",options:["All People Seem To Need Data Processing","Please Do Not Throw Sausage Pizza Away","Application Presentation Session Transport Network","People Need Data Sausage Pizza Away"],correct:1,explain:"Bottom-up (1→7): 'Please Do Not Throw Sausage Pizza Away.'"},
+{q:"How many layers does the OSI reference model define?",topic:"OSI basics",options:["4","5","7","8"],correct:2,explain:"The OSI model defines 7 conceptual layers."},
+{q:"Which of these is NOT one of the stated advantages of a layered (OSI) model?",topic:"OSI basics",options:["Intervendor operability","Ease of troubleshooting","Ease of understanding","Guaranteed encryption of all traffic"],correct:3,explain:"The three stated advantages are intervendor operability, ease of troubleshooting, and ease of understanding — encryption isn't a built-in guarantee of layering."},
+{q:"A web browser such as Chrome or Firefox operates at which OSI layer?",topic:"OSI L7",options:["Presentation","Session","Application","Transport"],correct:2,explain:"Layer 7 (Application) provides network services directly to application processes like browsers and email clients."},
+{q:"Which OSI layers are typically owned by system administrators / system engineers?",topic:"OSI ownership",options:["1–3","2–4","5–7","3–5"],correct:2,explain:"Layers 5–7 (Session, Presentation, Application) are the software/services side, typically owned by system admins."},
+{q:"Which OSI layers are typically owned by network administrators / network engineers?",topic:"OSI ownership",options:["1–4","5–7","4–6","2–3"],correct:0,explain:"Layers 1–4 (Physical through Transport) are about getting bits reliably from host to host — the network team's domain."},
+{q:"A frame becomes a stream of bits at which layer?",topic:"Encapsulation",options:["Layer 4","Layer 3","Layer 2","Layer 1"],correct:3,explain:"Layer 1 (Physical) transmits the frame as raw bits across the medium."},
+{q:"Which routing protocols are associated with the Network layer?",topic:"OSI L3",options:["HDLC, PPP, Frame Relay","RIP, EIGRP, OSPF, BGP","Ethernet, EIA/TIA","TCP, UDP"],correct:1,explain:"RIP, EIGRP, OSPF, and BGP are Layer 3 routing protocols concerned with path determination."},
+{q:"Which WAN encapsulation types are associated with the Data Link layer?",topic:"OSI L2",options:["RIP, OSPF, BGP","HDLC, PPP, Frame Relay","TCP, UDP","JPG, PNG, MP3"],correct:1,explain:"HDLC, PPP, and Frame Relay are Data Link (Layer 2) WAN encapsulation types."},
+{q:"What process occurs as data moves down the OSI stack for transmission?",topic:"Encapsulation",options:["De-encapsulation","Encapsulation","Segmentation only","Multiplexing only"],correct:1,explain:"Encapsulation: each layer wraps the layer above's output in its own header as data moves down the stack."},
+{q:"What is the reverse process called when a receiving host strips headers as data moves up the stack?",topic:"Encapsulation",options:["Encapsulation","Fragmentation","De-encapsulation","Termination"],correct:2,explain:"De-encapsulation strips each layer's header as data travels back up to the application."},
+{q:"Which OSI layer is 'closest to the user'?",topic:"OSI L7",options:["Physical","Data Link","Application","Network"],correct:2,explain:"Application (Layer 7) is the layer closest to the end user, providing network services to applications."},
+{q:"End devices such as PCs, servers, and network printers primarily represent which OSI layer in a topology diagram?",topic:"OSI devices",options:["Layer 7","Layer 4","Layer 2","Layer 1"],correct:0,explain:"End devices are typically associated with the Application layer (Layer 7) as the source/destination of application data."},
+{q:"Which OSI layer offers 'best-effort delivery' with no error correction of its own?",topic:"OSI L3",options:["Transport","Network","Data Link","Session"],correct:1,explain:"The Network layer (Layer 3) provides best-effort delivery; reliability, if needed, is handled elsewhere (e.g., TCP at Layer 4)."},
+{q:"Which layer is responsible for flow control and fault detection/recovery between hosts?",topic:"OSI L4",options:["Physical","Data Link","Network","Transport"],correct:3,explain:"Layer 4 (Transport) handles data-transport reliability, virtual circuit management, fault detection/recovery, and flow control."},
+{q:"In the TCP/IP (classic) model, how many layers are there?",topic:"TCP/IP model",options:["3","4","5","7"],correct:1,explain:"The classic TCP/IP model has 4 layers: Application, Transport, Internet, and Network Access."},
+{q:"The classic TCP/IP model's 'Application' layer maps to which OSI layers?",topic:"TCP/IP model",options:["7 only","5–7","6–7","4–7"],correct:1,explain:"TCP/IP collapses OSI's top three layers (Session, Presentation, Application) into one Application layer."},
+{q:"The classic TCP/IP model's 'Network Access' layer maps to which OSI layers?",topic:"TCP/IP model",options:["1–2","3–4","2–3","1 only"],correct:0,explain:"TCP/IP collapses OSI's bottom two layers (Data Link and Physical) into one Network Access layer."},
+{q:"Which 'updated' TCP/IP model keeps closer to how real troubleshooting is done?",topic:"TCP/IP model",options:["One that merges Transport and Network","One that keeps Data Link and Physical separate","One that removes the Application layer","One with 7 layers identical to OSI"],correct:1,explain:"The commonly-taught updated TCP/IP model keeps Data Link and Physical as separate layers instead of merging them."},
+{q:"In the updated TCP/IP model, how many layers are there?",topic:"TCP/IP model",options:["4","5","6","7"],correct:1,explain:"The updated TCP/IP model has 5 layers: Application, Transport, Network, Data Link, Physical."},
+{q:"What is a protocol, as defined in networking fundamentals?",topic:"Fundamentals",options:["A physical cable standard","A set of rules or instructions letting devices communicate successfully","A brand of networking hardware","An IP address range"],correct:1,explain:"A protocol is a set of rules/instructions used to let devices communicate — a shared language both ends agree to speak."},
+{q:"What is a key drawback of proprietary protocols?",topic:"Fundamentals",options:["They are always slower","They don't guarantee interoperability across vendor brands","They cannot be encrypted","They require fiber optic cabling"],correct:1,explain:"Proprietary protocols can only be run by the vendor that developed them, unlike open, standard protocols."},
+{q:"What is the primary purpose of networking, per the definition of resource sharing?",topic:"Fundamentals",options:["Interconnecting devices to enable resource sharing","Reducing the number of devices on a LAN","Encrypting all application traffic","Replacing all wired connections with wireless"],correct:0,explain:"Networking is the interconnection of devices to enable resource sharing."},
+{q:"In a typical LAN/WAN path (PC → switch → router → CSU/DSU → internet), where is the demarcation point?",topic:"LAN/WAN",options:["At the PC","At the switch","Where the provider's responsibility ends and yours begins","Inside the ISP's core network"],correct:2,explain:"The demarcation point is where the ISP's responsibility ends and the customer's begins — everything from there outward is the WAN side."},
+{q:"What does a CSU/DSU do?",topic:"LAN/WAN",options:["Converts DSL signal to Ethernet","Terminates a digital WAN circuit at the customer's demarcation point","Assigns IP addresses via DHCP","Filters MAC addresses on a switch"],correct:1,explain:"A Channel Service Unit / Data Service Unit terminates a digital WAN circuit at the customer's demarcation point."},
+{q:"What does a modem or DSL bridge do in a typical LAN/WAN setup?",topic:"LAN/WAN",options:["Terminates a digital WAN circuit","Converts the ISP line signal into an Ethernet connection the router can use","Performs Layer 3 routing between subnets","Provides Session-layer dialog control"],correct:1,explain:"A modem/DSL bridge converts the ISP's line signal (e.g., DSL) into Ethernet for the router."},
+{q:"Which of the following best describes 'flow control' as an OSI concept?",topic:"OSI concepts",options:["Encrypting data in transit","Regulating the amount of data sent so a receiver isn't overwhelmed","Assigning IP addresses","Converting binary to human-readable text"],correct:1,explain:"Flow control regulates data transmission rate so the receiving device isn't overwhelmed — handled at Transport and Data Link layers."},
+{q:"Which subnet mask corresponds to a /27 network?",topic:"Subnetting",options:["255.255.255.192","255.255.255.224","255.255.255.240","255.255.255.128"],correct:1,explain:"/27 = 11111111.11111111.11111111.11100000 = 255.255.255.224."},
+{q:"How many usable host addresses are available in a /30 subnet?",topic:"Subnetting",options:["0","2","4","6"],correct:1,explain:"/30 has 2 host bits → 2^2 − 2 = 2 usable addresses, commonly used for point-to-point links."},
+{q:"CIDR notation such as /24 refers to what?",topic:"CIDR",options:["The number of host bits","The number of network (mask) bits set to 1","The subnet's broadcast address","The class of the address"],correct:1,explain:"CIDR notation states the number of leading 1-bits in the subnet mask — /24 means 24 network bits."},
+{q:"Which IPv4 address class range does 192.168.1.1 fall into by default?",topic:"IP classes",options:["Class A","Class B","Class C","Class D"],correct:2,explain:"Addresses from 192.0.0.0–223.255.255.255 fall in Class C, which 192.168.1.1 is part of."},
+{q:"What is the broadcast address of the 192.168.10.0/24 network?",topic:"Subnetting",options:["192.168.10.0","192.168.10.1","192.168.10.254","192.168.10.255"],correct:3,explain:"The broadcast address is the last address in the range — with a /24, that's 192.168.10.255."},
+{q:"What does VLSM stand for?",topic:"VLSM",options:["Variable Length Subnet Mask","Virtual LAN Segment Mapping","Virtual Length Session Model","Variable Link State Management"],correct:0,explain:"VLSM = Variable Length Subnet Mask, allowing different subnet sizes within the same classful network."},
+{q:"What is the main advantage of VLSM over classful (fixed-size) subnetting?",topic:"VLSM",options:["It requires no routing protocol support","It allocates address space more efficiently by sizing subnets to actual host needs","It removes the need for a default gateway","It guarantees faster link speeds"],correct:1,explain:"VLSM avoids wasting addresses by matching subnet size to how many hosts a segment actually needs, instead of using one fixed size everywhere."},
+{q:"Which routing approach is required to support VLSM?",topic:"VLSM",options:["Classful routing protocols only","Classless routing protocols (that carry subnet mask info)","Static routing only","No routing protocol — VLSM is manual"],correct:1,explain:"VLSM requires classless routing protocols (e.g., OSPF, EIGRP, RIPv2) because they advertise subnet mask information along with routes."},
+{q:"When designing with VLSM, what is the recommended order for allocating subnets?",topic:"VLSM",options:["Smallest host requirement first","Largest host requirement first","Alphabetical by segment name","Random order, then adjust"],correct:1,explain:"A common VLSM approach is to assign subnets starting with the largest host requirement first, then work down to the smallest, to avoid fragmentation."},
+{q:"Which OSI layer would most directly be blamed for a 'wrong file format' or corrupted image display issue?",topic:"OSI L6",options:["Physical","Presentation","Data Link","Network"],correct:1,explain:"Presentation (Layer 6) is responsible for data formatting/representation — issues with formats like JPG or PNG map here conceptually."},
+{q:"A network engineer troubleshooting 'no session established' between two applications should focus first on which layer?",topic:"OSI L5",options:["Session","Physical","Data Link","Presentation"],correct:0,explain:"Session (Layer 5) establishes, manages, and terminates sessions between applications — that's the natural first layer to check for that symptom."},
+{q:"Why is 'ease of troubleshooting' cited as an OSI advantage?",topic:"OSI basics",options:["Because each layer can be isolated and tested independently","Because OSI removes the need for cabling","Because OSI eliminates the need for IP addresses","Because OSI merges all functions into one layer"],correct:0,explain:"Because responsibilities are separated by layer, problems can be isolated to a specific layer rather than the whole stack at once."},
+];
+
+/* ------------------------------------------------------------ */
+const root = document.getElementById('quizRoot');
+const jumprow = document.getElementById('jumprow');
+const total = QUESTIONS.length;
+let answeredCount = 0, correctCount = 0;
+const state = new Array(total).fill(null); // null = unanswered, else chosen index
+
+function buildQuiz(){
+  QUESTIONS.forEach((item, qi) => {
+    const card = document.createElement('div');
+    card.className = 'qcard';
+    card.id = 'q' + (qi+1);
+
+    const head = document.createElement('div');
+    head.className = 'qhead';
+    head.innerHTML = `<span class="qnum">Q${qi+1}.</span><span class="qtext">${item.q}</span><span class="topic">${item.topic}</span>`;
+    card.appendChild(head);
+
+    const opts = document.createElement('div');
+    opts.className = 'opts';
+    item.options.forEach((optText, oi) => {
+      const label = document.createElement('label');
+      label.className = 'opt';
+      label.innerHTML = `<input type="radio" name="q${qi}" value="${oi}"><span>${optText}</span>`;
+      label.addEventListener('click', () => handleAnswer(qi, oi));
+      opts.appendChild(label);
+    });
+    card.appendChild(opts);
+
+    const ex = document.createElement('div');
+    ex.className = 'explain';
+    ex.id = 'ex' + qi;
+    ex.innerHTML = `<b>Explanation:</b> ${item.explain}`;
+    card.appendChild(ex);
+
+    root.appendChild(card);
+
+    const jl = document.createElement('a');
+    jl.href = '#q' + (qi+1);
+    jl.textContent = (qi+1);
+    jl.id = 'jump' + qi;
+    jumprow.appendChild(jl);
+  });
+}
+
+function handleAnswer(qi, oi){
+  if(state[qi] !== null) return; // already locked
+  state[qi] = oi;
+  const card = document.getElementById('q' + (qi+1));
+  const labels = card.querySelectorAll('.opt');
+  const isCorrect = oi === QUESTIONS[qi].correct;
+  labels.forEach((lab, idx) => {
+    lab.classList.add('locked');
+    lab.querySelector('input').disabled = true;
+    if(idx === QUESTIONS[qi].correct) lab.classList.add('correct');
+    else if(idx === oi) lab.classList.add('incorrect');
+  });
+  card.classList.add('answered');
+  answeredCount++;
+  if(isCorrect) correctCount++;
+
+  const jl = document.getElementById('jump' + qi);
+  jl.classList.add(isCorrect ? 'done' : 'wrong');
+
+  updateScore();
+}
+
+function updateScore(){
+  document.getElementById('scoreNow').textContent = correctCount + ' / ' + total;
+  document.getElementById('scoreBar').style.width = (correctCount/total*100) + '%';
+  document.getElementById('answeredHint').textContent = answeredCount + ' / ' + total + ' answered';
+}
+
+function gradeRemaining(){
+  QUESTIONS.forEach((item, qi) => {
+    if(state[qi] === null){
+      const card = document.getElementById('q' + (qi+1));
+      const labels = card.querySelectorAll('.opt');
+      labels.forEach((lab, idx) => {
+        lab.classList.add('locked');
+        lab.querySelector('input').disabled = true;
+        if(idx === item.correct) lab.classList.add('correct');
+      });
+      card.classList.add('answered');
+      state[qi] = -1; // marked unanswered/skipped
+      answeredCount++;
+      const jl = document.getElementById('jump' + qi);
+      jl.classList.add('wrong');
+    }
+  });
+  updateScore();
+  showFinal();
+}
+
+function showFinal(){
+  const pct = Math.round(correctCount/total*100);
+  let grade;
+  if(pct >= 90) grade = 'Excellent';
+  else if(pct >= 75) grade = 'Passing';
+  else if(pct >= 50) grade = 'Needs review';
+  else grade = 'Restudy the layers';
+
+  document.getElementById('gradeText').textContent = pct + '%';
+  document.getElementById('resultLine').textContent =
+    correctCount + ' correct out of ' + total + ' — ' + grade + '. Review any red items above, then re-read the matching section on the Network Models, Subnetting, or VLSM pages.';
+  const panel = document.getElementById('finalPanel');
+  panel.classList.add('show');
+  panel.id = 'final';
+  panel.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function resetQuiz(){
+  root.innerHTML = '';
+  jumprow.innerHTML = '';
+  answeredCount = 0; correctCount = 0;
+  state.fill(null);
+  document.getElementById('finalPanel').classList.remove('show');
+  buildQuiz();
+  updateScore();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+document.getElementById('gradeBtn').addEventListener('click', gradeRemaining);
+document.getElementById('resetBtn').addEventListener('click', resetQuiz);
+
+buildQuiz();
+updateScore();
+</script>
+</body>
+</html>
