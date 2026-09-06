@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Activity — Networking Reviewer</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  /* ---- activity-page-only additions, reusing the theme's variables ---- */
+  .progressbar{
+    position:sticky; top:0; z-index:4; display:flex; align-items:center; gap:16px;
+    background:var(--panel); border:1px solid var(--border-soft); border-radius:var(--radius);
+    padding:12px 18px; margin:18px 0 30px;
+  }
+  .progressbar .big{ font-family:var(--mono); font-size:1.1rem; color:var(--amber); white-space:nowrap; }
+  .progressbar .bar{ flex:1; height:8px; border-radius:99px; background:var(--panel-2); overflow:hidden; border:1px solid var(--border-soft); }
+  .progressbar .bar > i{ display:block; height:100%; width:0%; background:var(--teal); transition:width .25s ease; }
+
+  .activity{ margin:34px 0 54px; }
+  .activity-title{ display:flex; align-items:center; gap:10px; margin-bottom:4px; }
+  .activity-title .lock{ font-family:var(--mono); font-size:.72rem; color:var(--muted-2); border:1px solid var(--border-soft); padding:2px 9px; border-radius:999px; }
+  .activity-title .lock.open{ color:var(--good); border-color:var(--good); }
+
+  .step{
+    background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+    padding:20px 22px; margin:14px 0; opacity:.4; pointer-events:none; position:relative;
+    transition:opacity .2s ease;
+  }
+  .step.unlocked{ opacity:1; pointer-events:auto; }
+  .step.done{ border-color:var(--good); }
+  .step .stephead{ display:flex; align-items:baseline; gap:10px; margin-bottom:10px; }
+  .step .stepnum{ font-family:var(--mono); font-size:.8rem; color:var(--teal); flex:0 0 auto; }
+  .step .steptitle{ font-weight:700; color:#fbfcff; }
+  .step .stepstatus{ margin-left:auto; font-family:var(--mono); font-size:.7rem; color:var(--muted-2); }
+  .step.done .stepstatus{ color:var(--good); }
+  .step .stepstatus.wrong{ color:var(--bad); }
+
+  .fields{ display:flex; flex-wrap:wrap; gap:12px; margin:12px 0; }
+  .field{ display:flex; flex-direction:column; gap:5px; flex:1 1 190px; min-width:150px; }
+  .field label{ font-family:var(--mono); font-size:.72rem; color:var(--muted); }
+  .field input{
+    font-family:var(--mono); font-size:.92rem; background:var(--panel-2); color:var(--text);
+    border:1px solid var(--border-soft); border-radius:8px; padding:9px 11px;
+  }
+  .field input:focus{ outline:2px solid var(--teal); outline-offset:1px; border-color:var(--teal); }
+  .field input.correct{ border-color:var(--good); background:rgba(111,219,156,.08); }
+  .field input.incorrect{ border-color:var(--bad); background:rgba(240,113,111,.08); }
+  .field input:disabled{ opacity:.7; }
+
+  .stepbtns{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:8px; }
+  .btn{
+    font-family:var(--sans); font-weight:600; font-size:.86rem; cursor:pointer;
+    border-radius:8px; padding:9px 16px; border:1px solid var(--border);
+  }
+  .btn.primary{ background:var(--teal); border-color:var(--teal); color:var(--ink); }
+  .btn.primary:hover{ filter:brightness(1.08); }
+  .btn.ghost{ background:var(--panel-2); color:var(--text); }
+  .btn.ghost:hover{ background:var(--card); }
+  .btn:disabled{ opacity:.5; cursor:default; }
+  .attempts{ font-family:var(--mono); font-size:.74rem; color:var(--muted-2); }
+
+  .stepfeedback{ margin-top:10px; padding:10px 14px; border-radius:8px; font-size:.86rem; display:none; }
+  .stepfeedback.show{ display:block; }
+  .stepfeedback.good{ background:rgba(111,219,156,.08); border-left:3px solid var(--good); color:var(--text); }
+  .stepfeedback.bad{ background:rgba(240,113,111,.08); border-left:3px solid var(--bad); color:var(--text); }
+  .reveal{ margin-top:10px; padding:10px 14px; border-left:3px solid var(--amber); background:var(--panel-2); border-radius:8px; font-size:.85rem; color:var(--muted); display:none; }
+  .reveal.show{ display:block; }
+
+  .final-card{ display:none; }
+  .final-card.show{ display:block; }
+  .grade{ font-family:var(--mono); font-size:2rem; color:var(--amber); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="dot"></span><strong>NET::REVIEWER</strong>
+  <select onchange="if(this.value) location.href=this.value;">
+    <option value="">Jump to page…</option>
+    <option value="index.html">01 · Network Models</option>
+    <option value="subnetting.html">02 · Subnetting</option>
+    <option value="vlsm.html">03 · VLSM</option>
+    <option value="quiz.html">04 · Quiz</option>
+    <option value="activity.html" selected>05 · Activity</option>
+  </select>
+</div>
+
+<div class="shell">
+  <aside class="sidenav">
+    <div class="brand">
+      <span class="dot"></span>
+      <div><span>NET::REVIEWER</span><small>IP networking study set</small></div>
+    </div>
+    <div class="navgroup-label">TOPICS</div>
+    <nav>
+      <a href="index.html"><span class="idx">01</span> Network Models</a>
+      <a href="subnetting.html"><span class="idx">02</span> Subnetting</a>
+      <a href="vlsm.html"><span class="idx">03</span> VLSM</a>
+      <a href="quiz.html"><span class="idx">04</span> Quiz</a>
+      <a href="activity.html" class="active"><span class="idx">05</span> Activity</a>
+    </nav>
+    <div class="toc">
+      <div class="navgroup-label">ON THIS PAGE</div>
+      <nav>
+        <a href="#actA">Activity A · Subnetting</a>
+        <a href="#actB">Activity B · VLSM</a>
+        <a href="#finalresult">Results</a>
+      </nav>
+    </div>
+  </aside>
+
+  <main>
+    <div class="pagewrap">
+
+      <div class="hero">
+        <div class="kicker">// 05 — HANDS-ON PRACTICE</div>
+        <h1>Activity: Work the Full Subnetting &amp; VLSM Process</h1>
+        <p class="lead">No multiple choice here — you do the actual math. Each activity is a chain of
+          steps that must be completed correctly, in order, before the next one unlocks: figure out
+          the bits, derive the mask, then work out every address in the range yourself, exactly the
+          way you'd do it on paper.</p>
+        <div class="badges">
+          <span class="badge">2 activities</span>
+          <span class="badge">Gated, step-by-step</span>
+          <span class="badge">Type your own answers</span>
+          <span class="badge">3 tries → reveal</span>
+        </div>
+      </div>
+
+      <div class="progressbar">
+        <span class="big" id="progNow">0 / 0 steps</span>
+        <div class="bar"><i id="progBar"></i></div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- ACTIVITY A — CLASSIC SUBNETTING                                -->
+      <!-- ============================================================ -->
+      <section class="block activity" id="actA">
+        <div class="section-head"><span class="num">A</span><h2>Activity A — Subnet a Class C network</h2></div>
+        <div class="activity-title">
+          <span class="lock" id="lockA">locked until you start</span>
+        </div>
+        <div class="card">
+          <p><strong>Scenario:</strong> You're given <span class="ip">192.168.5.0/24</span> and told
+            to divide it into at least <strong>6 equal-sized subnets</strong>. Work the 3-step method
+            yourself, step by step — each panel unlocks once the one before it is correct.</p>
+        </div>
+
+        <div class="step" id="a-step-0" data-group="A">
+          <div class="stephead"><span class="stepnum">A1</span><span class="steptitle">How many bits must you borrow from the host portion?</span><span class="stepstatus" id="a-status-0">—</span></div>
+          <p class="note">You need at least 6 subnets. Find the smallest number of bits n such that 2ⁿ ≥ 6.</p>
+          <div class="fields">
+            <div class="field"><label>Bits borrowed</label><input type="text" id="a-0-bits" placeholder="e.g. 2"></div>
+          </div>
+          <div class="stepbtns">
+            <button class="btn primary" onclick="checkStep('a',0)">Check step</button>
+            <span class="attempts" id="a-attempts-0"></span>
+          </div>
+          <div class="stepfeedback" id="a-fb-0"></div>
+          <div class="reveal" id="a-reveal-0"></div>
+        </div>
+
+        <div class="step" id="a-step-1" data-group="A">
+          <div class="stephead"><span class="stepnum">A2</span><span class="steptitle">Derive the new mask and CIDR prefix</span><span class="stepstatus" id="a-status-1">—</span></div>
+          <div class="fields">
+            <div class="field"><label>New subnet mask</label><input type="text" id="a-1-mask" placeholder="255.255.255.xxx"></div>
+            <div class="field"><label>CIDR prefix</label><input type="text" id="a-1-cidr" placeholder="/xx"></div>
+          </div>
+          <div class="stepbtns">
+            <button class="btn primary" onclick="checkStep('a',1)">Check step</button>
+            <span class="attempts" id="a-attempts-1"></span>
+          </div>
+          <div class="stepfeedback" id="a-fb-1"></div>
+          <div class="reveal" id="a-reveal-1"></div>
+        </div>
+
+        <div class="step" id="a-step-2" data-group="A">
+          <div class="stephead"><span class="stepnum">A3</span><span class="steptitle">Find the increment (block size)</span><span class="stepstatus" id="a-status-2">—</span></div>
+          <p class="note">Increment = 256 − (the octet value of your new mask).</p>
+          <div class="fields">
+            <div class="field"><label>Increment</label><input type="text" id="a-2-inc" placeholder="e.g. 16"></div>
+          </div>
+          <div class="stepbtns">
+            <button class="btn primary" onclick="checkStep('a',2)">Check step</button>
+            <span class="attempts" id="a-attempts-2"></span>
+          </div>
+          <div class="stepfeedback" id="a-fb-2"></div>
+          <div class="reveal" id="a-reveal-2"></div>
+        </div>
+
+        <div class="step" id="a-step-3" data-group="A">
+          <div class="stephead"><span class="stepnum">A4</span><span class="steptitle">List the network address of the 1st, 2nd, and 3rd subnets</span><span class="stepstatus" id="a-status-3">—</span></div>
+          <div class="fields">
+            <div class="field"><label>Subnet 1</label><input type="text" id="a-3-s1" placeholder="192.168.5.x"></div>
+            <div class="field"><label>Subnet 2</label><input type="text" id="a-3-s2" placeholder="192.168.5.x"></div>
+            <div class="field"><label>Subnet 3</label><input type="text" id="a-3-s3" placeholder="192.168.5.x"></div>
+          </div>
+          <div class="stepbtns">
+            <button class="btn primary" onclick="checkStep('a',3)">Check step</button>
+            <span class="attempts" id="a-attempts-3"></span>
+          </div>
+          <div class="stepfeedback" id="a-fb-3"></div>
+          <div class="reveal" id="a-reveal-3"></div>
+        </div>
+
+        <div class="step" id="a-step-4" data-group="A">
+          <div class="stephead"><span class="stepnum">A5</span><span class="steptitle">For the 3rd subnet, find the first host, last host, and broadcast address</span><span class="stepstatus" id="a-status-4">—</span></div>
+          <div class="fields">
+            <div class="field"><label>First usable host</label><input type="text" id="a-4-first" placeholder="192.168.5.x"></div>
+            <div class="field"><label>Last usable host</label><input type="text" id="a-4-last" placeholder="192.168.5.x"></div>
+            <div class="field"><label>Broadcast address</label><input type="text" id="a-4-bcast" placeholder="192.168.5.x"></div>
+          </div>
+          <div class="stepbtns">
+            <button class="btn primary" onclick="checkStep('a',4)">Check step</button>
+            <span class="attempts" id="a-attempts-4"></span>
+          </div>
+          <div class="stepfeedback" id="a-fb-4"></div>
+          <div class="reveal" id="a-reveal-4"></div>
+        </div>
+
+        <div class="step" id="a-step-5" data-group="A">
+          <div class="stephead"><span class="stepnum">A6</span><span class="steptitle">How many usable hosts does each subnet support?</span><span class="stepstatus" id="a-status-5">—</span></div>
+          <div class="fields">
+            <div class="field"><label>Usable hosts / subnet</label><input type="text" id="a-5-hosts" placeholder="e.g. 14"></div>
+          </div>
+          <div class="stepbtns">
+            <button class="btn primary" onclick="checkStep('a',5)">Check step</button>
+            <span class="attempts" id="a-attempts-5"></span>
+          </div>
+          <div class="stepfeedback" id="a-fb-5"></div>
+          <div class="reveal" id="a-reveal-5"></div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- ACTIVITY B — VLSM                                              -->
+      <!-- ============================================================ -->
+      <section class="block activity" id="actB">
+        <div class="section-head"><span class="num">B</span><h2>Activity B — VLSM design</h2></div>
+        <div class="activity-title">
+          <span class="lock" id="lockB">locked until Activity A is complete</span>
+        </div>
+        <div class="card">
+          <p><strong>Scenario:</strong> You're given <span class="ip">10.10.0.0/24</span> to design
+            for five segments: <strong>Sales</strong> (100 hosts), <strong>Engineering</strong>
+            (50 hosts), <strong>Guest Wi-Fi</strong> (20 hosts), and two point-to-point WAN links,
+            <strong>WAN-1</strong> and <strong>WAN-2</strong> (2 hosts each). Work it largest segment
+            first, exactly as the VLSM process describes — every later block must be carved from
+            space nobody has claimed yet.</p>
+        </div>
+
+        <div class="step" id="b-step-0" data-group="B">
+          <div class="stephead"><span class="stepnum">B1</span><span class="steptitle">Which segment must be assigned a block first, and why?</span><span class="stepstatus" id="b-status-0">—</span></div>
+          <div class="fields">
+            <div class="field" style="flex:1 1 220px"><label>Segment assigned first</label><input type="text" id="b-0-first" placeholder="Segment name"></div>
+          </div>
+          <div class="stepbtns">
+            <button class="btn primary" onclick="checkStep('b',0)">Check step</button>
+            <span class="attempts" id="b-attempts-0"></span>
+          </div>
+          <div class="stepfeedback" id="b-fb-0"></div>
+          <div class="reveal" id="b-reveal-0"></div>
+        </div>
+
+        <div class="step" id="b-step-1" data-group="B">
+          <div class="stephead"><span class="stepnum">B2</span><span class="steptitle">Sales — 100 hosts: mask, CIDR, and full address range</span><span class="stepstatus" id="b-status-1">—</span></div>
+          <div class="fields">
+            <div class="field"><label>Bits borrowed</label><input type="text" id="b-1-bits" placeholder="e.g. 3"></div>
+            <div class="field"><label>New mask</label><input type="text" id="b-1-mask" placeholder="255.255.255.xxx"></div>
+            <div class="field"><label>CIDR prefix</label><input type="text" id="b-1-cidr" placeholder="/xx"></div>
+          </div>
+          <div class="fields">
+            <div class="field"><label>Network address</label><input type="text" id="b-1-net" placeholder="10.10.0.x"></div>
+            <div class="field"><label>First host</label><input type="text" id="b-1-first" placeholder="10.10.0.x"></div>
+            <div class="field"><label>Last host</label><input type="text" id="b-1-last" placeholder="10.10.0.x"></div>
+            <div class="field"><label>Broadcast</label><input type="text" id="b-1-bcast" placeholder="10.10.0.x"></div>
+          </div>
+          <div class="stepbtns">
+            <button class="btn primary" onclick="checkStep('b',1)">Check step</button>
+            <span class="attempts" id="b-attempts-1"></span>
+          </div>
+          <div class="stepfeedback" id="b-fb-1"></div>
+          <div class="reveal" id="b-reveal-1"></div>
+        </div>
+
+        <div class="step" id="b-step-2" data-group="B">
+          <div class="stephead"><span class="stepnum">B3</span><span class="steptitle">Engineering — 50 hosts, carved from the leftover space</span><span class="stepstatus" id="b-status-2">—</span></div>
+          <p class="note">Leftover after Sales: 10.10.0.128/25. Re-subnet it for 50 hosts.</p>
+          <div class="fields">
+            <div class="field"><label>New mask</label><input type="text" id="b-2-mask" placeholder="255.255.255.xxx"></div>
+            <div class="field"><label>CIDR prefix</label><input type="text" id="b-2-cidr" placeholder="/xx"></div>
+          </div>
+          <div class="fields">
+            <div class="field"><label>Network address</label><input type="text" id="b-2-net" placeholder="10.10.0.x"></div>
+            <div class="field"><label>First host</label><input type="text" id="b-2-first" placeholder="10.10.0.x"></div>
+            <div class="field"><label>Last host</label><input type="text" id="b-2-last" placeholder="10.10.0.x"></div>
+            <div class="field"><label>Broadcast</label><input type="text" id="b-2-bcast" placeholder="10.10.0.x"></div>
+          </div>
+          <div class="stepbtns">
+            <button class="btn primary" onclick="checkStep('b',2)">Check step</button>
+            <span class="attempts" id="b-attempts-2"></span>
+          </div>
+          <div class="stepfeedback" id="b-fb-2"></div>
+          <div class="reveal" id="b-reveal-2"></div>
+        </div>
+
+        <div class="step" id="b-step-3" data-group="B">
+          <div class="stephead"><span class="stepnum">B4</span><span class="steptitle">Guest Wi-Fi — 20 hosts, carved from the next leftover</span><span class="stepstatus" id="b-status-3">—</span></div>
+          <div class="fields">
+            <div class="field"><label>New mask</label><input type="text" id="b-3-mask" placeholder="255.255.255.xxx"></div>
+            <div class="field"><label>CIDR prefix</label><input type="text" id="b-3-cidr" placeholder="/xx"></div>
+          </div>
+          <div class="fields">
+            <div class="field"><label>Network address</label><input type="text" id="b-3-net" placeholder="10.10.0.x"></div>
+            <div class="field"><label>First host</label><input type="text" id="b-3-first" placeholder="10.10.0.x"></div>
+            <div class="field"><label>Last host</label><input type="text" id="b-3-last" placeholder="10.10.0.x"></div>
+            <div class="field"><label>Broadcast</label><input type="text" id="b-3-bcast" placeholder="10.10.0.x"></div>
+          </div>
+          <div class="stepbtns">
+            <button class="btn primary" onclick="checkStep('b',3)">Check step</button>
+            <span class="attempts" id="b-attempts-3"></span>
+          </div>
+          <div class="stepfeedback" id="b-fb-3"></div>
+          <div class="reveal" id="b-reveal-3"></div>
+        </div>
+
+        <div class="step" id="b-step-4" data-group="B">
+          <div class="stephead"><span class="stepnum">B5</span><span class="steptitle">WAN-1 — 2 hosts, the first point-to-point link</span><span class="stepstatus" id="b-status-4">—</span></div>
+          <div class="fields">
+            <div class="field"><label>New mask</label><input type="text" id="b-4-mask" placeholder="255.255.255.xxx"></div>
+            <div class="field"><label>CIDR prefix</label><input type="text" id="b-4-cidr" placeholder="/xx"></div>
+          </div>
+          <div class="fields">
+            <div class="field"><label>Network address</label><input type="text" id="b-4-net" placeholder="10.10.0.x"></div>
+            <div class="field"><label>First host</label><input type="text" id="b-4-first" placeholder="10.10.0.x"></div>
+            <div class="field"><label>Last host</label><input type="text" id="b-4-last" placeholder="10.10.0.x"></div>
+            <div class="field"><label>Broadcast</label><input type="text" id="b-4-bcast" placeholder="10.10.0.x"></div>
+          </div>
+          <div class="stepbtns">
+            <button class="btn primary" onclick="checkStep('b',4)">Check step</button>
+            <span class="attempts" id="b-attempts-4"></span>
+          </div>
+          <div class="stepfeedback" id="b-fb-4"></div>
+          <div class="reveal" id="b-reveal-4"></div>
+        </div>
+
+        <div class="step" id="b-step-5" data-group="B">
+          <div class="stephead"><span class="stepnum">B6</span><span class="steptitle">WAN-2 — 2 hosts, the second point-to-point link</span><span class="stepstatus" id="b-status-5">—</span></div>
+          <div class="fields">
+            <div class="field"><label>Network address</label><input type="text" id="b-5-net" placeholder="10.10.0.x"></div>
+            <div class="field"><label>First host</label><input type="text" id="b-5-first" placeholder="10.10.0.x"></div>
+            <div class="field"><label>Last host</label><input type="text" id="b-5-last" placeholder="10.10.0.x"></div>
+            <div class="field"><label>Broadcast</label><input type="text" id="b-5-bcast" placeholder="10.10.0.x"></div>
+          </div>
+          <div class="stepbtns">
+            <button class="btn primary" onclick="checkStep('b',5)">Check step</button>
+            <span class="attempts" id="b-attempts-5"></span>
+          </div>
+          <div class="stepfeedback" id="b-fb-5"></div>
+          <div class="reveal" id="b-reveal-5"></div>
+        </div>
+
+        <div class="step" id="b-step-6" data-group="B">
+          <div class="stephead"><span class="stepnum">B7</span><span class="steptitle">Bonus: how much address space is left unused, as a CIDR block?</span><span class="stepstatus" id="b-status-6">—</span></div>
+          <p class="note">Everything after WAN-2's block, up to the end of the /24, is still free.</p>
+          <div class="fields">
+            <div class="field"><label>Free block (network/CIDR)</label><input type="text" id="b-6-free" placeholder="10.10.0.x/xx"></div>
+          </div>
+          <div class="stepbtns">
+            <button class="btn primary" onclick="checkStep('b',6)">Check step</button>
+            <span class="attempts" id="b-attempts-6"></span>
+          </div>
+          <div class="stepfeedback" id="b-fb-6"></div>
+          <div class="reveal" id="b-reveal-6"></div>
+        </div>
+      </section>
+
+      <div class="card final-card" id="finalresult">
+        <h3>Activity complete 🎉</h3>
+        <div class="grade" id="finalGrade">—</div>
+        <p id="finalLine"></p>
+      </div>
+
+      <div class="controls" style="display:flex;gap:12px;margin:26px 0;">
+        <button class="btn ghost" onclick="resetActivity()">Reset activity</button>
+      </div>
+
+      <div class="pagejump">
+        <a href="quiz.html"><span class="dir">← BACK</span>04 · Quiz</a>
+        <a class="next" href="index.html"><span class="dir">RESTART →</span>01 · Network Models</a>
+      </div>
+      <footer class="site">Networking Reviewer · Network Models · Subnetting · VLSM · Quiz · Activity</footer>
+    </div>
+  </main>
+</div>
+
+<script>
+/* ============================================================
+   Answer key. Every field has one or more accepted (normalized)
+   answers. Steps are gated: step i+1 stays locked/disabled until
+   step i is marked correct.
+   ============================================================ */
+const ANSWERS = {
+  a: [
+    { fields: { 'a-0-bits': ['3'] } },
+    { fields: { 'a-1-mask': ['255.255.255.224'], 'a-1-cidr': ['/27','27'] } },
+    { fields: { 'a-2-inc': ['32'] } },
+    { fields: { 'a-3-s1': ['192.168.5.0'], 'a-3-s2': ['192.168.5.32'], 'a-3-s3': ['192.168.5.64'] } },
+    { fields: { 'a-4-first': ['192.168.5.65'], 'a-4-last': ['192.168.5.94'], 'a-4-bcast': ['192.168.5.95'] } },
+    { fields: { 'a-5-hosts': ['30'] } },
+  ],
+  b: [
+    { fields: { 'b-0-first': ['sales'] } },
+    { fields: { 'b-1-bits': ['7'], 'b-1-mask': ['255.255.255.128'], 'b-1-cidr': ['/25','25'],
+                'b-1-net': ['10.10.0.0'], 'b-1-first': ['10.10.0.1'], 'b-1-last': ['10.10.0.126'], 'b-1-bcast': ['10.10.0.127'] } },
+    { fields: { 'b-2-mask': ['255.255.255.192'], 'b-2-cidr': ['/26','26'],
+                'b-2-net': ['10.10.0.128'], 'b-2-first': ['10.10.0.129'], 'b-2-last': ['10.10.0.190'], 'b-2-bcast': ['10.10.0.191'] } },
+    { fields: { 'b-3-mask': ['255.255.255.224'], 'b-3-cidr': ['/27','27'],
+                'b-3-net': ['10.10.0.192'], 'b-3-first': ['10.10.0.193'], 'b-3-last': ['10.10.0.222'], 'b-3-bcast': ['10.10.0.223'] } },
+    { fields: { 'b-4-mask': ['255.255.255.252'], 'b-4-cidr': ['/30','30'],
+                'b-4-net': ['10.10.0.224'], 'b-4-first': ['10.10.0.225'], 'b-4-last': ['10.10.0.226'], 'b-4-bcast': ['10.10.0.227'] } },
+    { fields: { 'b-5-net': ['10.10.0.228'], 'b-5-first': ['10.10.0.229'], 'b-5-last': ['10.10.0.230'], 'b-5-bcast': ['10.10.0.231'] } },
+    { fields: { 'b-6-free': ['10.10.0.232/29','10.10.0.232 /29'] } },
+  ],
+};
+
+const EXPLAIN = {
+  a: [
+    "You need ≥ 6 subnets. 2² = 4 (not enough), 2³ = 8 ≥ 6 — so 3 bits must be borrowed.",
+    "Borrowing 3 bits from the last octet turns 11100000 into the mask 255.255.255.224, i.e. /27 (24 default + 3 borrowed).",
+    "Increment = 256 − 224 = 32. Each subnet starts 32 addresses after the last.",
+    "Starting at .0 and counting by the increment (32): subnet 1 = 192.168.5.0, subnet 2 = 192.168.5.32, subnet 3 = 192.168.5.64.",
+    "Subnet 3 is 192.168.5.64/27, range .64–.95: first host .65, last host .94, broadcast .95.",
+    "/27 leaves 5 host bits → 2⁵ − 2 = 30 usable hosts per subnet.",
+  ],
+  b: [
+    "VLSM is always worked largest-requirement-first, so later (smaller) blocks only ever carve into space nobody has claimed yet. Sales (100 hosts) is the largest, so it goes first.",
+    "100 hosts needs 7 bits (2⁷−2=126≥100) → mask 255.255.255.128 /25. Starting at 10.10.0.0: network 10.10.0.0, hosts .1–.126, broadcast .127. Leftover: 10.10.0.128/25.",
+    "50 hosts needs 6 bits (2⁶−2=62≥50) → mask 255.255.255.192 /26, applied to the leftover 10.10.0.128/25. Network 10.10.0.128, hosts .129–.190, broadcast .191. Leftover: 10.10.0.192/26.",
+    "20 hosts needs 5 bits (2⁵−2=30≥20) → mask 255.255.255.224 /27, applied to the leftover 10.10.0.192/26. Network 10.10.0.192, hosts .193–.222, broadcast .223. Leftover: 10.10.0.224/27.",
+    "2 hosts needs 2 bits (2²−2=2) → mask 255.255.255.252 /30, applied to the leftover 10.10.0.224/27. Network 10.10.0.224, hosts .225–.226, broadcast .227.",
+    "The next /30 block after 10.10.0.224/30 is 10.10.0.228/30: network .228, hosts .229–.230, broadcast .231.",
+    "After WAN-2's block (.228–.231), everything from .232 through .255 (24 addresses = 10.10.0.232/29 plus more) is still free — the smallest clean summary is 10.10.0.232/29 (8 addresses), leaving room to grow.",
+  ],
+};
+
+const attempts = { a:[0,0,0,0,0,0], b:[0,0,0,0,0,0,0] };
+const done = { a:[false,false,false,false,false,false], b:[false,false,false,false,false,false,false] };
+
+function totalSteps(){ return done.a.length + done.b.length; }
+function doneCount(){
+  return done.a.filter(Boolean).length + done.b.filter(Boolean).length;
+}
+
+function normalize(v){
+  return String(v||'').trim().toLowerCase().replace(/\s+/g,'').replace(/^\/+/, m => m); // keep leading slash as typed, just trim spaces
+}
+function normalizeLoose(v){
+  // also produce a slash-stripped variant for CIDR-style comparisons
+  return String(v||'').trim().toLowerCase().replace(/\s+/g,'');
+}
+
+function checkStep(group, idx){
+  const stepDef = ANSWERS[group][idx];
+  const fieldIds = Object.keys(stepDef.fields);
+  let allCorrect = true;
+  fieldIds.forEach(id => {
+    const el = document.getElementById(id);
+    const accepted = stepDef.fields[id].map(normalizeLoose);
+    const userVal = normalizeLoose(el.value);
+    const isRight = accepted.includes(userVal);
+    el.classList.remove('correct','incorrect');
+    el.classList.add(isRight ? 'correct' : 'incorrect');
+    if(!isRight) allCorrect = false;
+  });
+
+  const fb = document.getElementById(group+'-fb-'+idx);
+  const statusEl = document.getElementById(group+'-status-'+idx);
+  const stepEl = document.getElementById(group+'-step-'+idx);
+
+  if(allCorrect){
+    fb.className = 'stepfeedback good show';
+    fb.textContent = 'Correct — nice work. Next step unlocked.';
+    statusEl.textContent = 'done';
+    statusEl.classList.remove('wrong');
+    stepEl.classList.add('done');
+    fieldIds.forEach(id => document.getElementById(id).disabled = true);
+    if(!done[group][idx]){ done[group][idx] = true; }
+    unlockNext(group, idx);
+    updateProgress();
+    checkActivityComplete();
+  } else {
+    attempts[group][idx]++;
+    document.getElementById(group+'-attempts-'+idx).textContent = attempts[group][idx] + ' attempt' + (attempts[group][idx]===1?'':'s');
+    fb.className = 'stepfeedback bad show';
+    fb.textContent = 'Not quite — check your math and try again.';
+    statusEl.textContent = 'retry';
+    statusEl.classList.add('wrong');
+    if(attempts[group][idx] >= 3){
+      const rev = document.getElementById(group+'-reveal-'+idx);
+      rev.className = 'reveal show';
+      rev.innerHTML = '<b>Worked answer:</b> ' + EXPLAIN[group][idx] +
+        '<br><br><button class="btn ghost" onclick="acceptAndUnlock(\''+group+'\','+idx+')">Fill in correct values &amp; continue</button>';
+    }
+  }
+}
+
+function acceptAndUnlock(group, idx){
+  const stepDef = ANSWERS[group][idx];
+  Object.keys(stepDef.fields).forEach(id => {
+    const el = document.getElementById(id);
+    el.value = stepDef.fields[id][0].replace(/^([0-9])/, m => m); // first accepted answer, as typed originally
+    el.classList.remove('incorrect');
+    el.classList.add('correct');
+    el.disabled = true;
+  });
+  const statusEl = document.getElementById(group+'-status-'+idx);
+  statusEl.textContent = 'done';
+  statusEl.classList.remove('wrong');
+  document.getElementById(group+'-step-'+idx).classList.add('done');
+  const fb = document.getElementById(group+'-fb-'+idx);
+  fb.className = 'stepfeedback good show';
+  fb.textContent = 'Marked complete with the worked answer — keep going.';
+  if(!done[group][idx]){ done[group][idx] = true; }
+  unlockNext(group, idx);
+  updateProgress();
+  checkActivityComplete();
+}
+
+function unlockNext(group, idx){
+  const nextEl = document.getElementById(group+'-step-'+(idx+1));
+  if(nextEl){ nextEl.classList.add('unlocked'); }
+  else if(group === 'a'){
+    // Activity A fully done -> unlock Activity B
+    document.getElementById('lockA').textContent = 'complete';
+    document.getElementById('lockA').classList.add('open');
+    document.getElementById('lockB').textContent = 'unlocked';
+    document.getElementById('lockB').classList.add('open');
+    document.getElementById('b-step-0').classList.add('unlocked');
+  } else if(group === 'b'){
+    document.getElementById('lockB').textContent = 'complete';
+  }
+}
+
+function updateProgress(){
+  const d = doneCount(), t = totalSteps();
+  document.getElementById('progNow').textContent = d + ' / ' + t + ' steps';
+  document.getElementById('progBar').style.width = (d/t*100) + '%';
+}
+
+function checkActivityComplete(){
+  if(done.a.every(Boolean) && done.b.every(Boolean)){
+    const panel = document.getElementById('finalresult');
+    panel.classList.add('show');
+    const totalAttempts = attempts.a.reduce((s,n)=>s+n,0) + attempts.b.reduce((s,n)=>s+n,0);
+    document.getElementById('finalGrade').textContent = '13 / 13 steps';
+    document.getElementById('finalLine').textContent =
+      'You worked the full classic-subnetting process and a complete VLSM design end to end, across ' +
+      (totalAttempts + 13) + ' total tries. Re-run with a fresh set of numbers by resetting the activity.';
+    panel.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+}
+
+function resetActivity(){
+  location.reload();
+}
+
+// init
+document.getElementById('a-step-0').classList.add('unlocked');
+updateProgress();
+</script>
+</body>
+</html>
