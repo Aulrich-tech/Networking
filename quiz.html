@@ -110,19 +110,19 @@
       <div class="hero">
         <div class="kicker">// 04 — SELF-TEST</div>
         <h1>Quiz: OSI Layers &amp; Addressing</h1>
-        <p class="lead">50 objective (multiple-choice) items. Mostly the OSI model — layer functions,
-          devices, protocols, and encapsulation vocabulary — with a scattering of subnetting and VLSM
-          questions to keep you honest. Pick an answer to lock it in and see the explanation instantly;
-          your running score updates as you go.</p>
+        <p class="lead">60 objective (multiple-choice) items, drawn mostly from the OSI &amp; TCP/IP
+          model reviewer — layer functions, devices, protocols, and encapsulation vocabulary — plus a
+          shorter set of subnetting, VLSM, and TCP/IP model questions to round it out. Pick an answer
+          and it's graded instantly, right there — no submit button needed.</p>
         <div class="badges">
-          <span class="badge">50 items</span>
+          <span class="badge">60 items</span>
           <span class="badge">Auto-graded</span>
           <span class="badge">Instant feedback</span>
         </div>
       </div>
 
       <div class="scorebox">
-        <span class="big" id="scoreNow">0 / 50</span>
+        <span class="big" id="scoreNow">0 / 60</span>
         <div class="bar"><i id="scoreBar"></i></div>
         <span class="hint" id="answeredHint">0 answered</span>
       </div>
@@ -132,7 +132,6 @@
       <div id="quizRoot"></div>
 
       <div class="controls">
-        <button class="btn primary" id="gradeBtn">Grade remaining &amp; show results</button>
         <button class="btn ghost" id="resetBtn">Reset quiz</button>
       </div>
 
@@ -154,48 +153,64 @@
 
 <script>
 /* ============================================================
-   50 objective items. Each: q (text), topic (badge), options[],
+   60 objective items. Each: q (text), topic (badge), options[],
    correct (index), explain (shown after answering).
+   Grading is automatic per-question on click; the final results
+   panel appears on its own once every item has been answered.
    ============================================================ */
 const QUESTIONS = [
-{q:"Which OSI layer is responsible for logical (IP) addressing and best-path determination?",topic:"OSI L3",options:["Data Link","Network","Transport","Session"],correct:1,explain:"Layer 3 (Network) assigns logical IP addresses and selects the best path between hosts, offering best-effort delivery with no built-in error correction."},
-{q:"At which layer does a switch primarily operate?",topic:"OSI devices",options:["Physical","Data Link","Network","Transport"],correct:1,explain:"Switches forward frames based on MAC addresses, which is Data Link (Layer 2) work."},
-{q:"Which layer is concerned with establishing, managing, and terminating sessions between applications?",topic:"OSI L5",options:["Presentation","Session","Transport","Application"],correct:1,explain:"Layer 5, Session. Rule of thumb: a remote connection = a session."},
-{q:"What is the Layer 4 protocol data unit (PDU) called?",topic:"Encapsulation",options:["Frame","Packet","Segment","Bit"],correct:2,explain:"Transport-layer data is called a segment. Sequence: Data → Segment (L4) → Packet (L3) → Frame (L2) → Bits (L1)."},
-{q:"Which layer adds a header to form a 'packet'?",topic:"Encapsulation",options:["Transport","Network","Data Link","Physical"],correct:1,explain:"The Network layer (Layer 3) wraps the segment with a network header to form a packet."},
-{q:"Routers primarily operate at which OSI layer?",topic:"OSI devices",options:["Layer 2","Layer 3","Layer 4","Layer 7"],correct:1,explain:"Routers make forwarding decisions using Layer 3 (Network) logical addressing."},
-{q:"Which layer negotiates data-transfer syntax and handles formats like JPG, MP3, and PDF?",topic:"OSI L6",options:["Application","Presentation","Session","Data Link"],correct:1,explain:"Layer 6, Presentation, ensures data is readable by the receiving system by formatting/structuring it."},
-{q:"TCP and UDP operate at which layer of the OSI model?",topic:"OSI L4",options:["Network","Transport","Session","Data Link"],correct:1,explain:"Layer 4 (Transport) is where TCP and UDP live, handling reliability and flow control between hosts."},
-{q:"Which OSI layer deals with bits, voltages, and physical media such as copper or fiber?",topic:"OSI L1",options:["Physical","Data Link","Network","Transport"],correct:0,explain:"Layer 1 (Physical) covers the raw transmission medium: cabling, connectors, voltages, and data rates."},
-{q:"MAC addressing is a function of which layer?",topic:"OSI L2",options:["Network","Data Link","Transport","Physical"],correct:1,explain:"Physical (MAC) addressing, local topology, and error notification are Data Link (Layer 2) responsibilities."},
+{q:"Routers operate at which layer of the OSI model?",topic:"OSI devices",options:["Physical", "Transport", "Network", "MAC sublayer of the data link layer", "Session"],correct:2,explain:"Routers forward data based on logical (IP) addresses, which is a network layer function."},
+{q:"Bits are packaged into frames at which layer of the OSI model?",topic:"Encapsulation",options:["Data link", "Transport", "Physical", "Presentation", "Application"],correct:0,explain:"The data link layer takes raw bits and organizes them into frames for transmission."},
+{q:"Which of the following are benefits of using a layered network model? (A) specifies how changes to one layer must be propagated through others (B) facilitates troubleshooting (C) focuses on details rather than general functions (D) breaks the complex process of networking into manageable chunks (E) allows layers developed by different vendors to interoperate.",topic:"OSI basics",options:["A and B only", "B, D, and E", "A and C only", "none of the above", "all of the above"],correct:1,explain:"Layering aids troubleshooting, breaks networking into manageable pieces, and lets vendors' layers interoperate."},
+{q:"The layers of the OSI model, from the top down, are:",topic:"OSI basics",options:["application, presentation, session, transport, network, data link, physical", "session, presentation, data transport, MAC, network, physical", "physical, data link, network, transport, session, presentation, application", "presentation, application, session, network, transport, data link, physical"],correct:0,explain:"Remember it top-down as: Application, Presentation, Session, Transport, Network, Data Link, Physical."},
+{q:"Which of the following operate at the presentation layer? (A) MIDI (B) FTP (C) SMTP (D) TFTP (E) JPEG",topic:"OSI L6",options:["A and B", "A, C, and E", "C and E", "A and E", "none of the above"],correct:3,explain:"MIDI and JPEG are data formatting/encoding standards, which belong to the presentation layer."},
+{q:"Which of the following are transport layer protocols?",topic:"OSI L4",options:["TCP and UDP", "IP", "FTAM", "IP and TFTP", "TFTP"],correct:0,explain:"TCP and UDP manage end-to-end delivery of data, which is the role of the transport layer."},
+{q:"Which of the following are considered to be the upper layer protocols?",topic:"OSI basics",options:["presentation and session", "application and presentation", "application, presentation, and session", "application, presentation, session, and transport", "application"],correct:2,explain:"The application, presentation, and session layers deal with user-facing data, not raw transmission."},
+{q:"Flow control takes place at which layer?",topic:"OSI L4",options:["Physical", "Transport", "Network", "MAC sublayer of the data link layer", "Session"],correct:1,explain:"The transport layer regulates the rate of data flow so a sender doesn't overwhelm a receiver."},
+{q:"Encryption takes place at which layer?",topic:"OSI L6",options:["Application", "Presentation", "Session", "Transport"],correct:1,explain:"The presentation layer is responsible for encryption, compression, and data formatting."},
+{q:"True or False: The network layer uses physical addresses to route data to destination hosts.",topic:"OSI L3",options:["True", "False"],correct:1,explain:"False \u2014 the network layer uses logical (IP) addresses; physical (MAC) addresses are used at the data link layer."},
+{q:"Error detection and recovery takes place at which layer?",topic:"OSI L4",options:["Transport", "Presentation", "Data link", "Application", "Network"],correct:0,explain:"The transport layer ensures reliable delivery, detecting errors and handling recovery/retransmission."},
+{q:"Which layer establishes, maintains, and terminates communications between applications located on different devices?",topic:"OSI L5",options:["Application", "Presentation", "Session", "Network", "Data link"],correct:2,explain:"The session layer manages dialogues (sessions) between communicating applications."},
+{q:"IP is implemented at which OSI model layer?",topic:"OSI L3",options:["Transport", "Session", "Data link", "Network", "Logical link control"],correct:3,explain:"IP (Internet Protocol) provides logical addressing and routing, a core network layer function."},
+{q:"Which layer handles the formatting of application data so that it will be readable by the destination system?",topic:"OSI L6",options:["Application", "Presentation", "Session", "Transport", "Data link"],correct:1,explain:"The presentation layer translates/formats data so different systems can understand it."},
+{q:"Which of the following are presentation layer standards? (choose the best answer) (A) MIDI (B) TIFF (C) JPEG (D) MPEG (E) GIF",topic:"OSI L6",options:["C and D", "B, C, and E", "B, C, D, and E", "A only", "all of the above"],correct:4,explain:"MIDI, TIFF, JPEG, MPEG, and GIF are all data format standards handled at the presentation layer."},
+{q:"Packets are found at which layer?",topic:"OSI L3",options:["Data link", "Transport", "Network", "Session", "Physical"],correct:2,explain:"\"Packet\" is the name for the protocol data unit (PDU) at the network layer."},
+{q:"Which layer translates between physical (MAC) and logical addresses?",topic:"OSI L3",options:["Network", "Data link", "Transport", "Physical", "Session"],correct:0,explain:"Address resolution between MAC and IP addresses (e.g., via ARP) is a network layer function."},
+{q:"What does OSI stand for?",topic:"OSI basics",options:["International Standards Organization", "Open Systems Interconnect", "Operating Standard Information", "Operating System Interconnection", "Open Systems Interface"],correct:1,explain:"OSI stands for Open Systems Interconnect(ion), the reference model for network communication."},
+{q:"Repeaters and hubs operate at which layer?",topic:"OSI devices",options:["Network", "Transport", "Data link", "Session", "Physical"],correct:4,explain:"Repeaters and hubs just regenerate/broadcast electrical signals, a physical layer function."},
+{q:"Bit synchronization is handled at which layer?",topic:"OSI L1",options:["Data link", "Transport", "Physical", "Session", "Presentation"],correct:2,explain:"The physical layer manages timing/clocking so bits are correctly interpreted during transmission."},
+{q:"True or False: most logical addresses are preset in network interface cards at the factory.",topic:"OSI L2",options:["True", "False"],correct:1,explain:"False \u2014 MAC (physical) addresses are burned into NICs at the factory; logical (IP) addresses are assigned later."},
+{q:"Bridges operate at which layer of the OSI model?",topic:"OSI devices",options:["Physical", "Transport", "Data link", "Session", "Network"],correct:2,explain:"Bridges forward frames based on MAC addresses, which is a data link layer function."},
+{q:"What are the sublayers of the data link layer?",topic:"OSI L2",options:["MAC and IPX", "Hardware and frame", "MAC and LLC", "WAN and LAN", "TFTP and telnet"],correct:2,explain:"The data link layer splits into the MAC (Media Access Control) and LLC (Logical Link Control) sublayers."},
+{q:"Which layer translates between physical and logical addresses?",topic:"OSI L3",options:["The MAC sublayer of the data link layer", "Transport", "Physical", "Application", "Network"],correct:4,explain:"As with address resolution generally, mapping physical to logical addresses is a network layer task."},
+{q:"Which layer is responsible for packet sequencing, acknowledgments, and requests for retransmission?",topic:"OSI L4",options:["The MAC sublayer of the data link layer", "Transport", "Physical", "Application", "Network"],correct:1,explain:"The transport layer sequences data, sends acknowledgments, and requests retransmission of lost data."},
+{q:"In the TCP/IP Model, this layer controls the hardware devices and media that make up the network.",topic:"TCP/IP model",options:["Transport Layer", "Internet Layer", "Application Layer", "Network Access Layer"],correct:3,explain:"The Network Access Layer covers physical hardware and media, similar to OSI's physical + data link layers."},
+{q:"In the TCP/IP Model, this supports communication between diverse devices across diverse networks.",topic:"TCP/IP model",options:["Transport Layer", "Application Layer", "Network Access Layer", "Internet Layer"],correct:0,explain:"The Transport Layer manages end-to-end communication and data delivery between diverse devices/networks."},
+{q:"In the OSI encapsulation hierarchy, what is the correct order of Protocol Data Units (PDUs) from the application layer down to the physical layer?",topic:"Encapsulation",options:["Packet, Segment, Data, Frame, Bits.", "Data, Segment, Packet, Frame, Bits.", "Bits, Frame, Packet, Segment, Data.", "Segment, Data, Frame, Packet, Bits."],correct:1,explain:"Top-down, the PDU names are: Data (app/presentation/session), Segment (transport), Packet (network), Frame (data link), Bits (physical)."},
+{q:"At the Transport layer of the OSI model, what is the protocol data unit (PDU) commonly called?",topic:"Encapsulation",options:["Segment (for TCP) or Datagram (for UDP)", "Packet", "Frame", "Bit"],correct:0,explain:"The transport layer PDU is called a segment when using TCP, or a datagram when using UDP."},
+{q:"Which specific addressing information is added to the data when it reaches Layer 3 (the Network layer) of the OSI model?",topic:"Encapsulation",options:["Port numbers", "MAC addresses", "Session IDs", "IP addresses"],correct:3,explain:"Layer 3 (Network) adds logical addressing, i.e., source and destination IP addresses."},
+{q:"In the OSI model, what is the primary function of the Network layer?",topic:"OSI L3",options:["Ensure that packets are delivered with no loss or duplication.", "Transmit data frames", "Enable communication between network clients and services.", "Route messages between networks."],correct:3,explain:"The Network layer's core job is routing \u2014 determining the best path to move messages between different networks."},
+{q:"Which of the following tasks is associated with the Session layer?",topic:"OSI L5",options:["Connection establishment", "Data block breakdown", "Port number assignment", "IP address assignment"],correct:0,explain:"The Session layer opens, manages, and closes ongoing dialogues (sessions), including connection establishment."},
+{q:"Which of the following is the process of breaking a message into packets, adding controls and other information, and then transmitting the message through the transmission medium?",topic:"Encapsulation",options:["Transformation", "Segmentation", "Sequencing", "Encapsulation"],correct:3,explain:"Encapsulation wraps data with the headers/trailers needed at each layer before it's sent across the medium."},
+{q:"What represents the final form of data that is actually transmitted across a physical networking medium (like a copper cable or fiber optic strand) during encapsulation?",topic:"Encapsulation",options:["Frames", "Bits (electrical, optical, or radio frequency signals)", "Packets", "Segments"],correct:1,explain:"By the time data reaches the physical layer, it has been converted into bits represented as electrical, optical, or radio signals."},
+{q:"A Frame Check Sequence (FCS) for error detection is typically added to which part of a Layer 2 PDU during encapsulation?",topic:"Encapsulation",options:["The header of the Segment", "The payload of the Packet", "The trailer of the Frame", "The preamble of the Bit stream"],correct:2,explain:"The FCS is placed in the trailer of the Frame at the data link layer to allow the receiver to detect transmission errors."},
+{q:"What happens to the protocol headers (such as the MAC and IP headers) as a data unit moves up through the layers during decapsulation on the receiving host?",topic:"Encapsulation",options:["They are copied and resent back to the source host for verification.", "They are permanently stored in RAM for future packet analysis.", "They are combined with the application data to make it larger.", "They are read, processed, and then stripped away by each corresponding layer."],correct:3,explain:"During decapsulation, each layer reads and processes its own header/trailer information, then removes it before passing the data up."},
+{q:"Which two OSI model layers have the same functionality as a single layer of the TCP/IP model?",topic:"TCP/IP model",options:["Data link and Physical", "Network and Session", "Transport and Session", "Network and Transport"],correct:0,explain:"The TCP/IP model's Network Access layer combines the functions of the OSI Data Link and Physical layers."},
+{q:"At which layer of the OSI model would a logical address be added during encapsulation?",topic:"Encapsulation",options:["Physical layer", "Network layer", "Data link layer", "Transport layer"],correct:1,explain:"Logical (IP) addressing is added at the Network layer as data is encapsulated for transmission."},
+{q:"Which statement is correct about network protocols?",topic:"Fundamentals",options:["Network protocols define the type of hardware that is used and how it is mounted in racks.", "They define how messages are exchanged between the source and the destination.", "They all function in the network access layer of TCP/IP.", "They are only required for exchange of messages between devices on remote networks."],correct:1,explain:"Protocols are the agreed-upon rules that define how messages are formatted, sent, and received between source and destination."},
+{q:"What is an advantage of network devices using open standard protocols?",topic:"Fundamentals",options:["Network communications is confined to data transfers between devices from the same vendor.", "A client host and a server running different operating systems can successfully exchange data.", "Internet access can be controlled by a single ISP in each market.", "Competition and innovation are limited to specific types of products."],correct:1,explain:"Open standard protocols allow interoperability, so devices and systems from different vendors or OSes can communicate."},
+{q:"During encapsulation, which OSI layer's Protocol Data Unit (PDU) is called a Segment?",topic:"Encapsulation",options:["Application layer", "Transport layer", "Network layer", "Data link layer"],correct:1,explain:"As data is encapsulated, the Transport layer adds its header to the data, and the resulting PDU is called a Segment."},
+{q:"Decapsulation, the reverse of encapsulation, moves data through the OSI layers in which direction?",topic:"Encapsulation",options:["Top-down, from the Application layer to the Physical layer", "Bottom-up, from the Physical layer to the Application layer", "It skips directly from the Physical layer to the Application layer", "It only occurs at the Network layer"],correct:1,explain:"Decapsulation works in reverse of encapsulation: bits are received at the Physical layer and headers are stripped off as the data moves up to the Application layer."},
+{q:"During encapsulation, what is the PDU called once a network header is added to the Segment?",topic:"Encapsulation",options:["Frame", "Packet", "Bits", "Data"],correct:1,explain:"At the Network layer, a network (IP) header is added to the Segment, forming a Packet."},
+{q:"What two additions distinguish a Frame from a Packet during encapsulation at the Data Link layer?",topic:"Encapsulation",options:["A network header and a network trailer", "A frame header and a frame trailer", "A port number and a session ID", "A checksum and an IP address"],correct:1,explain:"The Data Link layer wraps the Packet with both a frame header and a frame trailer (which includes the FCS), making a Frame unique among PDUs."},
+{q:"Before the Transport layer adds a header to form a Segment, which OSI layers' output is simply represented as \"Data\"?",topic:"Encapsulation",options:["Physical, Data Link, and Network", "Application, Presentation, and Session", "Network and Data Link only", "Transport and Network only"],correct:1,explain:"The Application, Presentation, and Session layers work with data before any transport header is added, so their combined output is generically called \"Data.\""},
 {q:"Which mnemonic correctly lists the OSI layers from Layer 7 down to Layer 1?",topic:"OSI mnemonic",options:["Please Do Not Throw Sausage Pizza Away","All People Seem To Need Data Processing","Application Presents Session To Network Devices Physically","Data Packets Need Time To Send Properly"],correct:1,explain:"Top-down (7→1): 'All People Seem To Need Data Processing.'"},
 {q:"Which mnemonic correctly lists the OSI layers from Layer 1 up to Layer 7?",topic:"OSI mnemonic",options:["All People Seem To Need Data Processing","Please Do Not Throw Sausage Pizza Away","Application Presentation Session Transport Network","People Need Data Sausage Pizza Away"],correct:1,explain:"Bottom-up (1→7): 'Please Do Not Throw Sausage Pizza Away.'"},
-{q:"How many layers does the OSI reference model define?",topic:"OSI basics",options:["4","5","7","8"],correct:2,explain:"The OSI model defines 7 conceptual layers."},
-{q:"Which of these is NOT one of the stated advantages of a layered (OSI) model?",topic:"OSI basics",options:["Intervendor operability","Ease of troubleshooting","Ease of understanding","Guaranteed encryption of all traffic"],correct:3,explain:"The three stated advantages are intervendor operability, ease of troubleshooting, and ease of understanding — encryption isn't a built-in guarantee of layering."},
-{q:"A web browser such as Chrome or Firefox operates at which OSI layer?",topic:"OSI L7",options:["Presentation","Session","Application","Transport"],correct:2,explain:"Layer 7 (Application) provides network services directly to application processes like browsers and email clients."},
-{q:"Which OSI layers are typically owned by system administrators / system engineers?",topic:"OSI ownership",options:["1–3","2–4","5–7","3–5"],correct:2,explain:"Layers 5–7 (Session, Presentation, Application) are the software/services side, typically owned by system admins."},
-{q:"Which OSI layers are typically owned by network administrators / network engineers?",topic:"OSI ownership",options:["1–4","5–7","4–6","2–3"],correct:0,explain:"Layers 1–4 (Physical through Transport) are about getting bits reliably from host to host — the network team's domain."},
-{q:"A frame becomes a stream of bits at which layer?",topic:"Encapsulation",options:["Layer 4","Layer 3","Layer 2","Layer 1"],correct:3,explain:"Layer 1 (Physical) transmits the frame as raw bits across the medium."},
-{q:"Which routing protocols are associated with the Network layer?",topic:"OSI L3",options:["HDLC, PPP, Frame Relay","RIP, EIGRP, OSPF, BGP","Ethernet, EIA/TIA","TCP, UDP"],correct:1,explain:"RIP, EIGRP, OSPF, and BGP are Layer 3 routing protocols concerned with path determination."},
-{q:"Which WAN encapsulation types are associated with the Data Link layer?",topic:"OSI L2",options:["RIP, OSPF, BGP","HDLC, PPP, Frame Relay","TCP, UDP","JPG, PNG, MP3"],correct:1,explain:"HDLC, PPP, and Frame Relay are Data Link (Layer 2) WAN encapsulation types."},
-{q:"What process occurs as data moves down the OSI stack for transmission?",topic:"Encapsulation",options:["De-encapsulation","Encapsulation","Segmentation only","Multiplexing only"],correct:1,explain:"Encapsulation: each layer wraps the layer above's output in its own header as data moves down the stack."},
-{q:"What is the reverse process called when a receiving host strips headers as data moves up the stack?",topic:"Encapsulation",options:["Encapsulation","Fragmentation","De-encapsulation","Termination"],correct:2,explain:"De-encapsulation strips each layer's header as data travels back up to the application."},
-{q:"Which OSI layer is 'closest to the user'?",topic:"OSI L7",options:["Physical","Data Link","Application","Network"],correct:2,explain:"Application (Layer 7) is the layer closest to the end user, providing network services to applications."},
-{q:"End devices such as PCs, servers, and network printers primarily represent which OSI layer in a topology diagram?",topic:"OSI devices",options:["Layer 7","Layer 4","Layer 2","Layer 1"],correct:0,explain:"End devices are typically associated with the Application layer (Layer 7) as the source/destination of application data."},
-{q:"Which OSI layer offers 'best-effort delivery' with no error correction of its own?",topic:"OSI L3",options:["Transport","Network","Data Link","Session"],correct:1,explain:"The Network layer (Layer 3) provides best-effort delivery; reliability, if needed, is handled elsewhere (e.g., TCP at Layer 4)."},
-{q:"Which layer is responsible for flow control and fault detection/recovery between hosts?",topic:"OSI L4",options:["Physical","Data Link","Network","Transport"],correct:3,explain:"Layer 4 (Transport) handles data-transport reliability, virtual circuit management, fault detection/recovery, and flow control."},
 {q:"In the TCP/IP (classic) model, how many layers are there?",topic:"TCP/IP model",options:["3","4","5","7"],correct:1,explain:"The classic TCP/IP model has 4 layers: Application, Transport, Internet, and Network Access."},
-{q:"The classic TCP/IP model's 'Application' layer maps to which OSI layers?",topic:"TCP/IP model",options:["7 only","5–7","6–7","4–7"],correct:1,explain:"TCP/IP collapses OSI's top three layers (Session, Presentation, Application) into one Application layer."},
-{q:"The classic TCP/IP model's 'Network Access' layer maps to which OSI layers?",topic:"TCP/IP model",options:["1–2","3–4","2–3","1 only"],correct:0,explain:"TCP/IP collapses OSI's bottom two layers (Data Link and Physical) into one Network Access layer."},
 {q:"Which 'updated' TCP/IP model keeps closer to how real troubleshooting is done?",topic:"TCP/IP model",options:["One that merges Transport and Network","One that keeps Data Link and Physical separate","One that removes the Application layer","One with 7 layers identical to OSI"],correct:1,explain:"The commonly-taught updated TCP/IP model keeps Data Link and Physical as separate layers instead of merging them."},
 {q:"In the updated TCP/IP model, how many layers are there?",topic:"TCP/IP model",options:["4","5","6","7"],correct:1,explain:"The updated TCP/IP model has 5 layers: Application, Transport, Network, Data Link, Physical."},
-{q:"What is a protocol, as defined in networking fundamentals?",topic:"Fundamentals",options:["A physical cable standard","A set of rules or instructions letting devices communicate successfully","A brand of networking hardware","An IP address range"],correct:1,explain:"A protocol is a set of rules/instructions used to let devices communicate — a shared language both ends agree to speak."},
-{q:"What is a key drawback of proprietary protocols?",topic:"Fundamentals",options:["They are always slower","They don't guarantee interoperability across vendor brands","They cannot be encrypted","They require fiber optic cabling"],correct:1,explain:"Proprietary protocols can only be run by the vendor that developed them, unlike open, standard protocols."},
-{q:"What is the primary purpose of networking, per the definition of resource sharing?",topic:"Fundamentals",options:["Interconnecting devices to enable resource sharing","Reducing the number of devices on a LAN","Encrypting all application traffic","Replacing all wired connections with wireless"],correct:0,explain:"Networking is the interconnection of devices to enable resource sharing."},
 {q:"In a typical LAN/WAN path (PC → switch → router → CSU/DSU → internet), where is the demarcation point?",topic:"LAN/WAN",options:["At the PC","At the switch","Where the provider's responsibility ends and yours begins","Inside the ISP's core network"],correct:2,explain:"The demarcation point is where the ISP's responsibility ends and the customer's begins — everything from there outward is the WAN side."},
 {q:"What does a CSU/DSU do?",topic:"LAN/WAN",options:["Converts DSL signal to Ethernet","Terminates a digital WAN circuit at the customer's demarcation point","Assigns IP addresses via DHCP","Filters MAC addresses on a switch"],correct:1,explain:"A Channel Service Unit / Data Service Unit terminates a digital WAN circuit at the customer's demarcation point."},
-{q:"What does a modem or DSL bridge do in a typical LAN/WAN setup?",topic:"LAN/WAN",options:["Terminates a digital WAN circuit","Converts the ISP line signal into an Ethernet connection the router can use","Performs Layer 3 routing between subnets","Provides Session-layer dialog control"],correct:1,explain:"A modem/DSL bridge converts the ISP's line signal (e.g., DSL) into Ethernet for the router."},
-{q:"Which of the following best describes 'flow control' as an OSI concept?",topic:"OSI concepts",options:["Encrypting data in transit","Regulating the amount of data sent so a receiver isn't overwhelmed","Assigning IP addresses","Converting binary to human-readable text"],correct:1,explain:"Flow control regulates data transmission rate so the receiving device isn't overwhelmed — handled at Transport and Data Link layers."},
 {q:"Which subnet mask corresponds to a /27 network?",topic:"Subnetting",options:["255.255.255.192","255.255.255.224","255.255.255.240","255.255.255.128"],correct:1,explain:"/27 = 11111111.11111111.11111111.11100000 = 255.255.255.224."},
 {q:"How many usable host addresses are available in a /30 subnet?",topic:"Subnetting",options:["0","2","4","6"],correct:1,explain:"/30 has 2 host bits → 2^2 − 2 = 2 usable addresses, commonly used for point-to-point links."},
 {q:"CIDR notation such as /24 refers to what?",topic:"CIDR",options:["The number of host bits","The number of network (mask) bits set to 1","The subnet's broadcast address","The class of the address"],correct:1,explain:"CIDR notation states the number of leading 1-bits in the subnet mask — /24 means 24 network bits."},
@@ -204,10 +219,6 @@ const QUESTIONS = [
 {q:"What does VLSM stand for?",topic:"VLSM",options:["Variable Length Subnet Mask","Virtual LAN Segment Mapping","Virtual Length Session Model","Variable Link State Management"],correct:0,explain:"VLSM = Variable Length Subnet Mask, allowing different subnet sizes within the same classful network."},
 {q:"What is the main advantage of VLSM over classful (fixed-size) subnetting?",topic:"VLSM",options:["It requires no routing protocol support","It allocates address space more efficiently by sizing subnets to actual host needs","It removes the need for a default gateway","It guarantees faster link speeds"],correct:1,explain:"VLSM avoids wasting addresses by matching subnet size to how many hosts a segment actually needs, instead of using one fixed size everywhere."},
 {q:"Which routing approach is required to support VLSM?",topic:"VLSM",options:["Classful routing protocols only","Classless routing protocols (that carry subnet mask info)","Static routing only","No routing protocol — VLSM is manual"],correct:1,explain:"VLSM requires classless routing protocols (e.g., OSPF, EIGRP, RIPv2) because they advertise subnet mask information along with routes."},
-{q:"When designing with VLSM, what is the recommended order for allocating subnets?",topic:"VLSM",options:["Smallest host requirement first","Largest host requirement first","Alphabetical by segment name","Random order, then adjust"],correct:1,explain:"A common VLSM approach is to assign subnets starting with the largest host requirement first, then work down to the smallest, to avoid fragmentation."},
-{q:"Which OSI layer would most directly be blamed for a 'wrong file format' or corrupted image display issue?",topic:"OSI L6",options:["Physical","Presentation","Data Link","Network"],correct:1,explain:"Presentation (Layer 6) is responsible for data formatting/representation — issues with formats like JPG or PNG map here conceptually."},
-{q:"A network engineer troubleshooting 'no session established' between two applications should focus first on which layer?",topic:"OSI L5",options:["Session","Physical","Data Link","Presentation"],correct:0,explain:"Session (Layer 5) establishes, manages, and terminates sessions between applications — that's the natural first layer to check for that symptom."},
-{q:"Why is 'ease of troubleshooting' cited as an OSI advantage?",topic:"OSI basics",options:["Because each layer can be isolated and tested independently","Because OSI removes the need for cabling","Because OSI eliminates the need for IP addresses","Because OSI merges all functions into one layer"],correct:0,explain:"Because responsibilities are separated by layer, problems can be isolated to a specific layer rather than the whole stack at once."},
 ];
 
 /* ------------------------------------------------------------ */
@@ -275,33 +286,16 @@ function handleAnswer(qi, oi){
   jl.classList.add(isCorrect ? 'done' : 'wrong');
 
   updateScore();
+
+  if(answeredCount === total){
+    showFinal();
+  }
 }
 
 function updateScore(){
   document.getElementById('scoreNow').textContent = correctCount + ' / ' + total;
   document.getElementById('scoreBar').style.width = (correctCount/total*100) + '%';
   document.getElementById('answeredHint').textContent = answeredCount + ' / ' + total + ' answered';
-}
-
-function gradeRemaining(){
-  QUESTIONS.forEach((item, qi) => {
-    if(state[qi] === null){
-      const card = document.getElementById('q' + (qi+1));
-      const labels = card.querySelectorAll('.opt');
-      labels.forEach((lab, idx) => {
-        lab.classList.add('locked');
-        lab.querySelector('input').disabled = true;
-        if(idx === item.correct) lab.classList.add('correct');
-      });
-      card.classList.add('answered');
-      state[qi] = -1; // marked unanswered/skipped
-      answeredCount++;
-      const jl = document.getElementById('jump' + qi);
-      jl.classList.add('wrong');
-    }
-  });
-  updateScore();
-  showFinal();
 }
 
 function showFinal(){
@@ -332,7 +326,6 @@ function resetQuiz(){
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
-document.getElementById('gradeBtn').addEventListener('click', gradeRemaining);
 document.getElementById('resetBtn').addEventListener('click', resetQuiz);
 
 buildQuiz();
